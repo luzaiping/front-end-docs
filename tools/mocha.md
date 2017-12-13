@@ -10,7 +10,7 @@ mocha默认执行根目录下test文件夹里的文件(子文件夹里的文件�
 
 1. 安装 babel-core 以及 所需的 presets，比如 babel-preset-es2015
 1. 在package.json里添加script：__"test:mocha": "mocha --compilers js:babel-core/register test/**/*.js"__
-1. 也可以用 --recursive递归test的子目录, 如果脚本本身在test目录下，用这个配置更方便，就无需用glob指定目录
+1. 也可以用 --recursive 递归test的子目录, 如果脚本本身在test目录下，用这个配置更方便，就无需用glob指定目录
 1. __"test:mocha": "mocha --compilers js:babel-register --require babel-polyfill --require ignore-styles -r mock-local-storage --recursive"__
 
 注：

@@ -144,6 +144,9 @@ git merge <remote>/<remote-branch-name>
 ### 跟踪远程分支
 
 从远处仓库 checkout 下来的分支就叫 *跟踪分支* (tracking branch)，跟踪分支就是和某个远程分支有建立联系的本地分支，所以可以直接使用 **git push** 和 **git pull** 同远程仓库进行数据交互，Git知道具体是同哪个分支交互，因为已经建立好了跟踪信息
+### 跟踪远程分支
+
+从远处仓库checkout下来的分支就叫 *跟踪分支* (tracking branch)，跟踪分支就是和某个远程分支有直接联系的本地分支，所以可以直接使用 **git push** 和 **git pull** 同远程仓库进行数据交互，Git知道具体是同哪个分支交互，因为已经建立好了跟踪信息
 
 下面2条命令都可以创建跟踪分支，两条命令的作用是等同（这2条命令适用于本地还没有对应分支，需要checkout的情况）
 
@@ -151,6 +154,8 @@ git merge <remote>/<remote-branch-name>
 git checkout -b <local-branch-name> <remote>/<remote-branch-name>
 git checkout --track <remote>/<remote-branch-name>
 ```
+
+最后一条命令是上面两条命令的简写，这条命令只有 本地没有 branch-name 这个分支，并且只关联一个 remote，并且 remote 上也有 branch-name 这个分支，那么就会在本地建立 tracking-branch
 
 远程分支名称不可以忽略，否则会默认关联到master
 
