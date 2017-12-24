@@ -100,3 +100,27 @@ new HtmlWebpackPlugin({
 ```
 
 这个 plugin 的介绍请参考 plugin.md 文件。
+
+### file-loader, url-loader, image-webpack-loader
+
+这3个loader相关性比较高，尤其是前面2个，这边分别说明用法和注意事项
+
+#### file-loader
+
+这个 loader 用于将代码中引用的资源文件(比如image, font)拷贝到最终build的文件夹里。被拷贝的文件名称由options的name属性指定。代码中我们按正常的方式引用资源文件，通过这个loader处理后，最终生成的html文件里看到的资源文件引用地址会变成文件在build文件夹里的url。
+
+来看下最常见的配置内容：
+
+```javascript
+{
+    test: /\.(png|svg|jpg|gif)$/,
+    use: [{
+        loader: 'file-loader',
+        options: {
+            name: 'images/[hash].[ext]' // 覆盖默认的文件名称，新的文件名称将所有文件统一放到[output.path] 的 images 文件夹里
+        }
+    }]
+}
+```
+
+这边配置代码中如果碰到对这4种后缀文件的引用(html里的引用或者css文件里引用)，这个loader会将对应文件拷贝到build文件，然后根据name配置项，生成新的文件名称
