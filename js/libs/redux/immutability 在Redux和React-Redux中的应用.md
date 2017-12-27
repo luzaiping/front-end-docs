@@ -118,20 +118,24 @@ function mapStateToProps(state) {
 
 ## 常见使用例子分析
 
-前面主要讲解一些理论知识，现在基于这些知识来分析下几个例子存在的问题。
+前面主要讲解一些理论知识，现在基于这些知识来分析下几个例子存在的问题。这些例子都是基于 Redux root state 是下面的结构：
+
+```javascript
+{
+    todos: array,
+    count: number
+}
+```
 
 ### 例子1
 
 ```javascript
-import update from 'immutability-helper'
 export default createReducer(initList, {
     [actionConstants.GET_TODOS.SUCCESS](state, action) {
         let { todos = [] } = action
-        let newState = state  // 第5行
-        newState.todos = todos // 第6行
-        return update(state, { // 第7行
-            '$set': newState
-        })
+        let newState = state  // 第4行
+        newState.todos = todos // 第5行
+        return { ...newState } // 第6行
     },
 })
 ```
