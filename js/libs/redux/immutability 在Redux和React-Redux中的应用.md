@@ -81,7 +81,7 @@ combineReducers 接受一个 object 对象，对象中的每一个 key 就是每
 
 从源码中我们可以看出，只要有一个 小state 浅比较不相等，hasChanged 值就是true，最终就会返回新state。
 
-研究完 Redux 源码后，现在回过头看下最开始那个例子，那个例子直接修改了当前 state，这样 combineReducers 在执行第156行，计算 hasChanged 就会得到不正确的结果，就会影响最终返回的 root state。如果实现了时间穿梭功能，就没办法回到上一个状态；另外一个就是对 React-Redux 的影响，我们接着往下看。
+研究完 Redux 源码后，现在回过头看下最开始那个例子，那个例子直接修改了当前 state，这样 combineReducers 在执行第156行，计算 hasChanged 就会得到不正确的结果，由于直接修改了state，所以在返回值上面并没有影响，因为nextState 和 state 是同一个对象(这个例子因为root state 比较简单，如果是复杂的结构并且一个action同时修改了多个 小state，那么情况会更加复杂)。不过这么做会使得时间穿梭功能不正常，因为返回的上一个状态是错误；另外一个影响发生在 React-Redux 的Smart Component，我们接着往下看。
 
 ### React-Redux 如何使用 浅比较
 
@@ -97,7 +97,7 @@ function mapStateToProps(state) {
 
 React-Redux 使用浅比较来判断它所包装的 Component 是否需要 re-render, 判断的依据是：
 
-1. 对 Redux 前后的 root state 进行浅比较，如果 状态发生变更了，则执行下一条判断；如果没有发生变更，则不会触发 re-render;
+1. 对 Redux 前后的 root state 进行浅比较，如果状态发生变更了，则执行下一条判断；如果没有发生变更，则不会触发 re-render;
 1. 对 mapStateToProps 返回对象中每一个 key 对应的 value 进行浅比较，如果有一个 key 对应的 value 和 前一个状态相同 key 对应的 value 不一样，就执行 re-render
 
 从这边可以看出，React-Redux 是依赖于 Redux 的 state，如果 Redux state 没有被正确更新，就有可能导致 React-Redux 所包装的 Component 没能正确在。还是最开始那个例子，我们直接修改了 Redux state，但是 combineReducers 计算后 hasChanged 值是 false，导致 React-Redux 在对 root state 进行浅比较时，就判定状态没有变更，因此组件也就不会 re-render.
@@ -129,6 +129,8 @@ function mapStateToProps(state) {
 
 ### 例子1
 
+reducer函数：
+
 ```javascript
 export default createReducer(initList, {
     [actionConstants.GET_TODOS.SUCCESS](state, action) {
@@ -140,5 +142,23 @@ export default createReducer(initList, {
 })
 ```
 
+Smart Component：
 
+```javascript
+function mapStateToProps(state) {
+    return {
+        todos: state.todos
+    }
+}
+```
+
+这个例子跟最开始的那个例子有点类似，唯一区别是这边最后返回一个新对象，而最开始那个例子是直接返回修改后的state。那么这个例子有什么问题呢？
+
+1. 第4行创建了newState变量，不过跟state是同样的引用；第5行虽然是修改 newState.todos，但其实也把state修改了；所以这个 reducer 已经不是 pure function，Redux state 已经不是 immutability；这样直接导致的结果就是时间穿梭功能会出问题；
+1. 第6行通过ES6 的 spread operator 返回一个内容跟 newState 一样，引用不同的新对象
+1. 因为 reducer 最终返回新对象，因此使用 React-Redux 的 Smart component 在判断是否需要 re-render 的第一个条件时一样会判定 Redux root state 有变更，所以会往下执行第二个判断条件，因为前后的state不是同一个对象，由 mapStateToProps 返回对象中的 todos 所指向的 state.todos 也就不一样，浅比较时会判断状态有变更，因此会执行包装组件的 re-render。
+
+如果项目不实现时间穿梭功能，那么这个例子，看上去功能是正常。当然这样的写法是极力不推荐，Redux 官方对 state 的推荐用法是 state 应该是只读，任何状态的变更都应该通过 reducer 来实现，而且 reducer 应该是 pure function，即不能对 state 有任何直接修改。不光是 Redux，其他能引用到 state 的地方都不允许直接修改 state，比如 Smart Component。
+
+### 例子2
 ## 使用 immutability 说明
