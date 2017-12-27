@@ -116,7 +116,7 @@ function mapStateToProps(state) {
 
 假如 Redux State 的 count 发生变更了，而 todos 没有变更；根据 React-Redux 判断 re-render 的依据，因为 Redux root state 发生变更了，因此第一条判断是通过；这样就会执行第二条判断。如果第二条判断直接比较 mapStateToProps 的返回值，结果也会判定状态有变更，因此就会引起包装的component re-render。 而实际是这个 Smart Component 只关注 todos 的状态变更，只有todos发生变更了，才重新渲染组件，但是现在 count 的变更却引起了组件的重新渲染，从而导致不必要的性能开销。基于这个原因，__React-Redux 是对 mapStateToProps 函数返回对象中每一个 key 对应的 value 进行浅比较__。
 
-## 常见使用例子分析
+## 几个例子分析
 
 前面主要讲解一些理论知识，现在基于这些知识来分析下几个例子存在的问题。这些例子都是基于 Redux root state 是下面的结构：
 
@@ -161,4 +161,50 @@ function mapStateToProps(state) {
 如果项目不实现时间穿梭功能，那么这个例子，看上去功能是正常。当然这样的写法是极力不推荐，Redux 官方对 state 的推荐用法是 state 应该是只读，任何状态的变更都应该通过 reducer 来实现，而且 reducer 应该是 pure function，即不能对 state 有任何直接修改。不光是 Redux，其他能引用到 state 的地方都不允许直接修改 state，比如 Smart Component。
 
 ### 例子2
-## 使用 immutability 说明
+
+对上面例子的reducer函数进行调整：
+
+```javascript
+export default createReducer(initList, {
+    [actionConstants.GET_TODOS.SUCCESS](state, action) {
+        let { todos = [] } = action
+        let newState = todos.length > 0 ? { ...state, todos } : state  // 第4行
+        return { ...newState } // 第5行
+    },
+})
+```
+
+这个例子，根据 todos 数组的大小得到 newState，第4行这边，从写法上没有任何问题，如果 todo.length 大于 0，返回的是一个新state，否则返回当前state；这个例子的问题出在第5行，不管第4行得到的 newState 是修改后的 state 还是原先 state，第5行都会再返回一个新state；这样 React-Redux 始终会判定需要对React component 进行 re-render。而对于 todos.length 不大于 0 的情形，我们的本意是state没有变更，React component 无需 re-render。
+
+这个例子 Redux state 实现了 immutability，但是由于函数始终返回一个新的对象，导致不必要的 re-render，问题相比之前的例子有点隐蔽，需要留意。解决这个问题的办法很简单，去掉第5行，直接在第4行返回三元运算符的结果即可。
+
+### 例子3
+
+对第一个例子 Smart component 做下调整：
+
+```javascript
+
+const getVisibleTodos = todos => todos.filter(t => !t.completed)
+
+function mapStateToProps(state) {
+    return {
+        visibleToDos: getVisibleTodos(state.todos)
+    }
+}
+```
+
+这个例子 mapStateToProps 返回对象里只有一个 visibleToDos属性，值是通过getVisibleTodos函数得到的数组。注意 getVisibleTodos 用的是 Array.prototype.filter 函数，这个函数是一个immutability 函数，每次执行都会返回新的数组。
+
+这个例子如果是 Redux state 的 todos 发生变更，那么不会有任何问题。问题出在如果是只有 state 的 counter 发生变化，按照前面说的 re-render 判断依据，第一条显然满足，因此往下执行第二条判断，因为用了数组的filter函数，所以getVisibleTodos函数每次都会返回新数组，最终导致前后两次的visibleToDos在进行浅比较时，会判定不是同一对象，从而执行组件的re-render。即只是 counter 的变化，却导致了这个 Smart component 所包装的 component 重新渲染。
+
+同第二个例子一样，这个问题也很隐蔽，不够解决办法相比会麻烦点，一种方案是借助 reselect。通过 reselect 的 createSelector 将 getVisibleTodos 函数包装起来，如果内存中没有所需的 visibleToDos，那么就会调用 getVisibleTodos 计算得到visibleToDos；如果已有visibleToDos，则直接返回visibleToDos，不会再执行 getVisibleTodos。这样如果 state.todos 没有变化，那么前后两次得到的 visibleToDos 就是同一个对象，也就不会触发 re-render。
+
+## 总结
+
+这篇文章主要讲解 Redux 和 React-Redux 这2个类库对于 immutability 的应用, 以及浅比较在其中扮演的重要角色。另外对于使用过程中可能碰到的问题进行分析。
+
+对React组件会有影响主要有两个问题，一是状态的错误管理导致不触发re-render, 另外一种是应用了 immutability, 但是因为不恰当使用，导致不必要的 re-render。在实际开发过程中，牢记下面三点，就可以避免大部分的相关问题：
+
+1. 永远不要直接去修改 Redux state
+1. reducer 函数要嘛返回新state对象，要嘛返回当前state对象
+1. 对于 mapStateToProps 函数，如果所关注的那部分 Redux state 没有变更，那么函数返回对象中每一个 key 对应的 value 也得不变
