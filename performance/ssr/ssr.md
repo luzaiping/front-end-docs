@@ -2,17 +2,9 @@
 
 ## SSR 和 CSR
 
-  SSR (server-side rendering), 即服务端渲染技术，是服务端预先把html页面上的特定区域，特定内容，用数据填充过，将处理过的html内容响应给浏览器。比如 jsp 。
+  SSR (server-side rendering), 即服务端渲染技术，是服务端预先把html页面上的特定内容，用数据填充过，将处理过的html内容响应给浏览器。比如 jsp 。
 
   CSR (client-side rendering), 即客户端渲染技术，是服务端不对html文件进行处理，将html内容原封不动响应给浏览器，浏览器接收到html后开始下载css和js，之后动态构建页面内容。目前前端的SPA大多都是采用这种方式。
-
-### SSR的优点
-
-  采用SSR有2个显著的优点：
-
-  1. 首次加载页面的速度更快，对用户更友好：采用服务器渲染，用户能更早看到渲染好的页面。
-
-  1. 服务器端渲染可以让搜索引擎更容易读取页面的meta信息以及其他SEO相关信息，更有利于Spider抓取
 
 ### SSR 和 CSR 的区别
 
@@ -22,6 +14,13 @@
 
 ![客户端渲染流程图](csr.png)
 
+### SSR的优点
+
+  采用SSR有2个显著的优点：
+
+  1. 首次加载页面的速度更快，对用户更友好：采用服务器渲染，用户能更早看到渲染好的页面。
+
+  1. 服务器端渲染可以让搜索引擎更容易读取页面的meta信息以及其他SEO相关信息，更有利于Spider抓取
 ## React SSR 实现
 
   服务端将 React Component 转化为 HTML 的字符串，再结合 html 模板文件 进行数据填充，最后将填充后的 html 文件内容响应给浏览器。
@@ -43,7 +42,7 @@
 
   renderToStaticMarkup 没有生成这些属性，会导致浏览器端冲重新渲染一次。因此不要用这个函数进行SSR。
 
-  ![浏览器端渲染React组件的流程图](checksum.png)
+  ![checksum不匹配](warning.png)
 
 ## 结合 React-Router
 
