@@ -1,20 +1,18 @@
-# package.json
+# dependency 区别
 
-## dependency 区别
-
-### dependencies
+## dependencies
 
   放在这个 property 下面的 package，是应用运行时需要依赖的包，通常是指部署到生产环境后所需的最小依赖包
 
   在有 package.json 的目录里，执行 npm install, 会安装配置在这个key里的所有依赖包
 
-### devDependencies
+## devDependencies
 
   只有开发时需要用到的包，通常用于打包、构建、转化代码用，比如 babel、eslint、webpack 这类包。
 
   在有 package.json 的目录里，执行 npm install, 会安装配置在这个key里的所有依赖包
 
-### peerDependencies
+## peerDependencies
 
   一般只有开发 library 或者 插件 供其他人使用才会用到这个配置。
 
@@ -30,11 +28,11 @@
 
 npm3之后，配置成 peerDependencies，都需要手动安装。
 
-### bundledDependencies
+## bundledDependencies
 
   指定哪些依赖包要跟当前library一起打包发布
 
-### optionalDependencies
+## optionalDependencies
 
   可选的依赖包，这些包安装失败不会影响npm命令的正常运行。
 
