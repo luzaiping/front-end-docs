@@ -1,4 +1,4 @@
-#
+# 性能优化
 
 ## 加载性能
 
@@ -50,6 +50,8 @@
   类似于 inline css/js，图片可以以 data-uri 的格式被使用，通常在css background 和 html image 标签里会见到。采用这种方法，图片是被转成 base64 格式直接嵌入到 css/html 文件里，不需要额外的http 请求。
 
   当然这种方式也有缺点，通常转成base64格式后，图片大小会更大，同时也增加了 css/html 文件大小，因此也不能滥用这种优化方法。
+
+#### critical rendering path
 
 #### http cache
 
