@@ -48,7 +48,7 @@ git config --list
 git config keyName
 ```
 
-## SSH 配置
+## 配置 SSH 连接 github
 
 这个适用于SSH协议，配置是为了不用每次请求都要重新输入认证信息
 
