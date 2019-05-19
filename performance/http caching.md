@@ -52,12 +52,12 @@ no-cache 表明同一个URL的请求，浏览器缓存不能直接被使用，�
 
 解决这个问题的办法是，改变请求资源的URL，这样就会强制重新下载，因为资源是按照URL来进行标识。通常的做法时，在URL里携带文件内容的指纹信息，比如 hash，webpack的 chunkhash。
 
-![更新缓存](images/update-cache)
+![更新缓存](images/update-cache.png)
 
 如图，利用 Cache-Control 可以针对每个资源或者每类资源设定缓存策略：
 
-1. 由于 css、image、js 是包含在 html 里，因此 html 要设置成 no-cache，确保html变更后，会立即从服务端获取下来；
-1. css 和 js 的请求 URL 都带有 hash 信息；如果某个文件发生变更，那么hash就会变化，那么 URL 就会变更，由于 html 包含这些URL，所以 html 也会修改；这样就能及时获取到新的内容
+1. 由于 css、image、js 是包含在 html 里，因此 html 要设置成 no-cache，这样每次请求html，都会通过ETag进行校验，一旦服务端的html发生变更，就会重新请求，确保浏览器端会应用最新的html内容；
+1. css 和 js 的请求 URL 要带有 hash 信息；如果文件内容发生变更，那么对应的hash就会变化，URL 就会变更，由于 html 包含这些URL，所以 html 也会跟着发生变更；而 html 的缓存是设置成 no-cache，一旦html发生变更，就会请求新的html内容，也就会请求新的 js/css 内容。所以 css/js 的 缓存策略就是将 max-age 设置成尽可能长。
 1. 图片的URL是固定，缓存时间设置成一天，通常这么设置是没有问题，因为图片相比不怎么会变更，如果有变更，一天之后缓存就会失效，就会重新获取了。
 
 这边对不同资源采用不同缓存策略，再结合ETags，组合起来充分发挥缓存的效用。
