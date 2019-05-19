@@ -55,7 +55,7 @@ prefetch 和 preload 的区别：
 
 ## lazy loading
 
-lazy loading 是在真正需要的时候才请求，有点类似 prefetch 的效果。实现 lazy loading 的前提是做好了 dynamic import 的 code splitting； react 针对提供了 loadable-components 来实现，另外要使用 import() 需要引入 @babel/plugin-syntax-dynamic-import
+lazy loading 是在真正需要的时候才请求，有点类似 prefetch 的效果。实现 lazy loading 的前提是做好了 dynamic import 的 code splitting； react 提供了 loadable-components 来实现，另外要使用 import() 需要引入 @babel/plugin-syntax-dynamic-import
 
 ```javascript
 import loadable from '@loadable/component'
@@ -72,7 +72,7 @@ export default class LoadableDashboard extends React.Component {
 }
 ```
 
-上面这个就实现了对 Dashboard component 的 lazy loading。具体细节参考 [react-router 文档](https://reacttraining.com/react-router/web/guides/code-splitting).
+上面这个就实现了对 Dashboard component 的 lazy loading。具体细节参考 [react-router 文档](https://reacttraining.com/react-router/web/guides/code-splitting). 这个其实同时实现了 code splitting 和 lazy loading。 code splitting 场景更多。对于 SPA 的 lazy loading 就是对 route 进行code splitting。
 
 ## caching
 

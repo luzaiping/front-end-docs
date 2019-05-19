@@ -221,3 +221,44 @@ module.exports = {
 
 #### 使用 service worker 进行预缓存
 
+在初始化后使用 serviceWorker precache 剩下的路由和功能可以显著改善性能：
+
+1. 不会影响 init loading, 因为 service worker 的 registration 和 接下来的 precaching 是发生在 页面加载 完成后
+1. precaching remaing routes and functionality with a service worker 确保之后对他们的请求能够立即可用(已经缓存下来了)
+
+可以使用 [workbox](https://developers.google.com/web/tools/workbox/) 的 webpack plugin [workbox-webpack-plugin](https://www.npmjs.com/package/workbox-webpack-plugin) 来生成一个 service worker 帮助快速实现：
+
+```javascript
+const { GenerateSW } = require("workbox-webpack-plugin");
+module.exports = {
+  // ...
+  plugins: [
+    // ... other plugins omitted
+    new GenerateSW()
+  ]
+  // ...
+};
+```
+
+这个配置 workbox 生成的 service worker 会 precache 应用中所有的 JS, 对于小的应用，这样配置还可以；对于大的应用，就得限制 precache 的内容；可以通过设置 plugin 的 options 参数
+```javascript
+module.exports = {
+  plugins: [
+    new GenerateSW({
+      chunks: ["main", "Favorites", "PedalDetail", "vendors"]
+    })
+  ]
+};
+```
+这个设置 service worker 要 precache 的 白名单
+
+#### preload & prefetch
+
+通过 service worker precache scripts 是一种增强式的改进方法。如果无法使用这种方式，可以考虑使用 preload 和 prefetch。
+
+rel=preload 和 rel=prefetch 是属于对资源获取的提示，提示浏览器在真正用到资源前就进行请求。这2个有不同的意思：
+
+1.rel=prefetch 是属于低优先级的fetch，用于获取不是很重要的资源，只有在浏览器空闲的时候才会执行
+1.rel=preload 是属于高优先级的fetch，用于获取当前路由的重要资源，这个通常在浏览器识别到之后就马上进行请求
+
+webpack 都提供了对这2种方式的支持。具体参考 [google developer](https://developers.google.com/web/fundamentals/performance/optimizing-javascript/code-splitting/#prefetching_and_preloading_scripts).

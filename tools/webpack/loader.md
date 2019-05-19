@@ -27,7 +27,31 @@ resolveLoader: {
 }
 ```
 
-看一个例子：
+或者在 resolveLoader 里添加一个 alias, 然后在 loader 里正常引用
+```javascript
+resolveLoaer: {
+    alias: {
+        'parent-scope-loader': path.join(__dirname, 'loader', 'parentScopeLoader.js')
+    }
+}
+```
+这样 module.rules 里 loader 配置就可以直接引用 parent-scope-loader
+
+```javascript
+use: ['style-loader', 'css-loader', 'postcss-loader', 'parent-scope-loader']
+```
+比如这个对css的处理，处理顺序是： parent-scope-loader -> postcss-loader -> css-loader -> style-loader
+
+来看下 parent-scope-loader 的实现：
+
+```javascript
+module.exports = function parentScopeLoader(source) {
+  return '.parent { ' + source + ' }'
+}
+```
+将原先 css 内容包装在一个 parent class 里面
+
+再看一个例子：
 
 ```javascript
 module.exports = function(content) {
@@ -37,7 +61,6 @@ module.exports = function(content) {
 }
 module.exports.seperable = true
 ```
-
 
 ## 常见loader的使用
 
