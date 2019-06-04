@@ -1,3 +1,13 @@
+# react-redux
+
+react-redux 用于将 react 和 redux 关联起来. 通过这个 library, react 可以访问 redux store 的data，同时可以 dispatch 对应的 action 来修改 store，从而触发 re-renderring.
+
+这个 library 包含2个核心的函数(component):
+
++ Provider component
++ connect function
+
+
 1. Provider
 
 	Makes the Redux store available to the connect() calls in the component hierarchy below. 

@@ -10,9 +10,9 @@
 
 看图：
 
-![服务端渲染流程图](ssr.png)
+![服务端渲染流程图](../images/ssr.png)
 
-![客户端渲染流程图](csr.png)
+![客户端渲染流程图](../images/csr.png)
 
 ### SSR的优点
 
@@ -56,19 +56,19 @@
 
   这个函数是 SSR 专用，用于匹配 location 和 路由配置信息；匹配后，调用 callback(error, redirectLocation, renderProps)
 
-  ![match代码](match.png)
+  ![match代码](../images/match.png)
 
 ### RouterContext
 
   看下 Router 的 render 函数
 
-  ![router-render代码](router-render.png)
+  ![router-render代码](../images/router-render.png)
 
   该 render 函数里引用里存储在组件 state 里的 location、routes、params；而服务端是没有组件 state 的概念，因为不能直接使用 Router。
 
   再看下引用的 render 函数的代码
 
-  ![router-getDefaultProps代码](router-getDefaultProps.png)
+  ![router-getDefaultProps代码](../images/router-getDefaultProps.png)
 
   Router 实际是将 props 传给 RouterContext代码，然后渲染 RouterContext，至于 props 则通过上面的 match 函数在渲染前得到。
 

@@ -6,11 +6,19 @@
 
 ### compiler 和 compilcation
 
-compiler object 代表完整的可配置webpack 环境。创建一个 plugin 时会接收一个 compiler 参数，通过该参数可以主要的 webpack 环境信息。
+plugins expose the full potential of webpack engine to third-party developers. Using staged build callbacks, developer can introduce their own behaviors into the webpack build process.
 
-compilation object 代表单次 build 时的 versioned assets (特定版本的assets)，这个是 plugin 的核心所在
+compiler object 代表完整的可配置webpack 环境。一旦webpack启动，这个对象就会被创建。当创建一个 plugin 时会接收一个 compiler 参数，通过该参数可以得到主要的 webpack 环境信息。
 
-实现一个 plugin 通常是监听这2个对象暴露出来的事件
+compilation object 代表单次 versioned assets (特定版本的assets) build ；每次当有文件修改被检测到，一个新的 compilation 会被创建，然后生成一组新的 compiled assets。
+
+A compilation 暴露关于 module resources, compiled assets, change files, watched dependencies 的当前状态信息。 Compilation 提供了很多 callback, 允许 plugin 在特定时候执行特定的action
+
+实现一个 plugin, 分为2个步骤：
+1. 定义一个 Plugin name 的构造函数, 接收一个 options 参数
+1. 在构造函数的prototype上定义一个 apply 函数，接收一个 compiler 参数
+
+apply 函数是 plugin 的重点，通常在函数体内监听这上面2个核心对象暴露出来的事件。当安装plugin的时候，webpack compiler 就会执行 apply 方法。
 
 ### plugin 基本结构
 

@@ -6,7 +6,9 @@
 
 A loader is a node module exporting a function.
 
-在这个函数里对 代码内容进行处理. 如果多个 loaders 对同一种资源进行 chain 式处理，配置在最下面的 loader 是最先执行处理，然后再往上执行。只有第一个 loader 的 function 可以接收2个参数： 第一个是 content, 第二个是 sourceMap; 后面的 loader function 接收的参数值是 前一个loader function 的返回值(已被前一个loader处理过的内容)
+在这个函数里对 代码内容进行处理. 如果多个 loaders 对同一种资源进行 chain 式处理，配置在最下面的 loader 是最先执行处理，然后再往上执行。
+
+只有第一个 loader 的 function 可以接收2个参数：第一个是 content, 第二个是 sourceMap; 后面的 loader function 接收的参数是 前一个loader function 的返回值(已被前一个loader处理过的内容)
 
 ```javascript
 module: {
@@ -17,13 +19,13 @@ module: {
 }
 ```
 
-比如上面这个配置，先执行 fooLoader, 接收的 content 是最初的 JS 内容； 处理完后将内容返回作为 barLoader 的输入参数。
+比如上面这个配置，先执行 fooLoader, 接收的 content 是最初的 JS 内容；处理完后将内容返回作为 barLoader 的输入参数。
 
 另外 webpack 默认只搜索 node_modules 下面的文件夹或者loaders。如果 loader 定义在外面，要使用 resolveLoader 解析 loaders 目录，通过下面的配置来实现：
 
 ```javascript
 resolveLoader: {
-    modules: ['node_modules', path.resolve(__dirname, 'loaders')] // 这边加载node_modules 和 loaders文件夹 的内容作为 loaders
+    modules: ['node_modules', path.resolve(__dirname, 'loaders')] // 这边加载node_modules 和 loaders文件夹的内容作为 loaders
 }
 ```
 

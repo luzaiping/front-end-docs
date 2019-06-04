@@ -26,7 +26,7 @@ SPA不适用这种情况， 这个先不说
 
 ### dynamic import
 
-通过 import() 动态导入所需的 module
+通过 import() 动态导入所需的 module, 这个也叫 lazy loading。
 
 ### prefecthing/preloading modules
 
