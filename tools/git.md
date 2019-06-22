@@ -45,8 +45,11 @@ git config --list
 查看某个name的配置信息：
 
 ``` Bash
-git config keyName
+git config user.name
+git config user.email
 ```
+
+后面的 user.name 和 user.email 替换成要查看的 key name 即可
 
 ## 配置 SSH 连接 github
 
@@ -57,35 +60,46 @@ git config keyName
 ---
 说明：GitBook 目前不支持SSH，只支持Https，所以没有SSH配置的内容。关于如何配置认证信息，Gitbook提供了设置'~/.netrc'文件的办法，不过在个人电脑上试了没有成功；在公司电脑就可以，具体原因只能是后续有机会再研究。Gitbook关于结合git的文章链接如下：[GitBook 结合 Git](https://help.gitbook.com/books/how-can-i-use-git.html)
 
-## Git 远程仓库
+## Git远程仓库相关操作
 
 ### 查看远程仓库信息
 
-+ 查看远程仓库
+查看远程仓库信息可以通过 git remote 命令：
 
 ``` Bash
 git remote
 ```
 
-+ 查看远程仓库详细信息，包括所有branch 及 跟本地的跟踪分支建立情况，这个命令最常用
+这个会列出每个远程仓库的简短名称。可以后面加上 -v (--verbose 的简写), 能显示更完整的信息:
 
-``` Bash
-git remote show <remote-name>
-```
-
-+ 其他命令
-
-``` Bash
+```bash
 git remote -v
-git ls-remote <remote-name>
-git branch -r  查看远程有哪些分支
 ```
 
-### 远程分支的协作
+也可以通过 show remote-name，显示仓库的所有 branch 及跟本地仓库分支的关联关系(push 和 pull)
 
-+ 获取一个远程仓库
+``` Bash
+git remote show origin
+```
 
-要获取远程仓库，可以通过clone的命令来实现
+### 其他命令
+
+``` Bash
+git ls-remote <remote-name>
+```
+
+这个命令能看到各个 tag 和 merge-request 信息，不常用，等有进一步了解再补充。
+
+```bash
+git branch -r
+git branch -a  
+```
+
+git branch 用于查看分支, 加上 -r 只显示远程分支, 加上 -a 显示本地和远程所有分支
+
+### 获取一个远程仓库到本地
+
+要获取远程仓库，通常是通过clone命令来实现
 
 ``` Bash
 git clone [-o another-remote-name] url
@@ -93,15 +107,105 @@ git clone [-o another-remote-name] url
 
 中括号的内容一般不提供(默认是origin，如果提供就是修改remote name)，这样会clone一份远程的仓库到本地，本地的文件夹名称会跟远程仓库名一样
 
-+ 关联本地仓库和远程仓库
+### 添加远程仓库
 
-假设已经有一个远程的仓库，本地也通过 git init 建立了一个仓库，那么可以通过下面的命令(在本地仓库目录下运行)，将这2个仓库关联起来
+假设已经有一个远程仓库，本地也通过 git init 建立了一个仓库，那么可以通过 git remote add [shortname] [url]，为本地仓库增加新的远程仓库
 
 ``` Bash
-git remote add <remote> url
+git remote add pb git://github.com/paulboone/ticgit.git
+```
+shortname 是指定的远程仓库名称，通常就是 origin, 也可以根据需要自定义成其他更有意义的名称, 比如 paul (paul 的仓库)
+
+### 抓紧远程仓库的数据
+
+获取远程仓库数据可以通过 git fetch [remote-name]
+
+这个命令会到远程仓库中拉取所有本地没有的数据。运行后，就可以在本地访问该远程仓库的所有分支，将其中某个分支合并到本地，或者只是取出某个分支，查看里面的内容。
+
+通过 git clone 复制一个远程仓库后，这个命令会自动将远程仓库归于 origin 下。通过 git fetch origin，会抓取别人上传到这个远程仓库中的所有更新到本地。
+
+git fetch 只是将远程数据拉到本地仓库，并不会自动合并到当前工作分支，如果要合并需要手动操作。
+
+比如远程有一个 serverfix 分支，通过 git fetch origin，本地仓库会多一个 origin/serverfix, 指向远程的 serverfix。这时候本地还没有可编辑的 serverfix 分支，需要通过 git merge origin/serverfix 将这些工作合并到当前工作的分支。
+
+如果要合并到本地 serverfix 分支，那就得先本地创建 serverfix 分支，然后在该分支上执行 git merge。也可以通过下面命令快速实现
+
+```
+git checkout -b serverfix origin/serverfix
 ```
 
-+ 推送本地的分支到远程，让其他人可以在这个分支上工作
+这个命令会基于 origin/serverfix 创建一个新的本地分支 serverfix。
+
+如果是为本地某个分支设置了跟踪远程分支，可以使用 git pull 抓取远程数据下来，并且自动将远程分支合并到本地当前分支。 git pull 相当于是 git fetch 和 git merge 的组合。 
+
+通过 git clone 会自动创建本地的 master 分支用于跟踪远程仓库的 master 分支。对于其他分支，就需要手动设置跟踪。
+
+### 推送本地的分支到远程
+
+本地分支需要跟其他人共享进行协同工作，就需要将本地分支推送到远程仓库， 可以通过 git push [remote-name] [branch-name] 实现
+
+```bash
+git push origin serverfix
+```
+
+这边将本地的 serverfix 分支推送到远程仓库 这个命令要求对 origin 远程仓库有写权限。
+
+推送成功后，其他人就可以通过 git fetch [remote-name] 获取这个分支的数据。
+
+如果要指定远程分支的名称，可以在本地分支名称后面加上 ':remote-branch-name'：
+```
+git push origin serverfix:awesomebranch
+```
+
+将本地的 serverfix 分支推送到远程仓库上的 awesomebranch 分支
+
+### 跟踪远程分支
+
+当 clone 一个远程仓库，会自动创建一个跟踪 origin/master 的 master 分支。如果要在本地建立跟踪其他远程分支，可以通过 git checkout -b [branch] [remotename]/[branch] 实现：
+
+```bash
+git checkout -b serverfix origin/serverfix
+```
+
+实现这个的前提是已经通过 git fetch origin，将远程数据拉取到本地仓库，本地已经有 origin/serverfix 分支的情况下才能建立起来。
+
+这个命令比较常用，所有提供了一个 --track 快捷方式：
+
+```bash
+git checkout --track origin/serverfix
+```
+这条命令等同于上面那条命令，执行这个命令前要确保本地没有 serverfix 分支才行。
+
+设置已有的本地分支跟踪一个刚刚拉取下来的远程分支，或者想要修改正在跟踪的上游分支，你可以在任意时间使用 -u 或 --set-upstream-to 选项运行 git branch 来显式地设置：
+
+```bash
+git branch -u origin/serverfix
+git branch --set-upstream-to=origin/serverfix
+```
+
+如果想要查看设置的所有跟踪分支，可以使用 git branch 的 -vv 选项
+
+```bash
+git branch -vv
+```
+
+#### git pull
+
+通过 git fetch 命令从服务器上获取最新的数据到本地，这个命令并不会修改工作目录中的内容。 如果要获取并且合并，就可以通过 git pull, 这个命令相当于先 git fetch, 再 git merge。通常设置好跟踪分支后，就可以通过这个命令，获取远程仓库的数据，并将当前分支所跟踪的分支内容自动合并到本地所操作的分支上。
+
+不过还是建议显示通过 git fetch 和 git merge 来操作。
+
+### 删除远程分支
+
+要删除远程分支，可以通过 git push 再带上 --delete 选项即可
+
+```bash
+git push origin --delete serverfix
+```
+
+这个命令会将服务器上的 serverfix 分支删除掉。通常分支已经合并到 master 后，就可以删除掉了。
+
+这个命令只是从服务器上移除这个指针。 Git 服务器通常会保留数据一段时间直到垃圾回收运行，所以如果不小心删除掉了，通常是很容易恢复的。
 
 ``` Bash
 git push -u <remote> <local-branch-name>[:remote-branch-name]
@@ -127,37 +231,25 @@ git branch -u <remote>/<remote-branch-name>
 
 这个对于创建分支并且推送到远程的创建者比较适用；而对于其他协作者，可以通过建立跟踪分支，直接就可以push 和 pull
 
-+ 获取远程新的远程信息到本地
+## 本地仓库管理
 
-``` Bash
-git fetch <remote>
+### 重命名分支
+
+重命名本地分支很容易，通过 git branch -m 即可：
+
+```
+git branch -m oldName newName
 ```
 
-这条命令会获取 remote server 的最新信息到本地的 origin/xxx 分支上 (具体是哪个分支，由 upstream 设定)
+这样就可以将本地分支名称 oldName 改成 newName
 
-``` Bash
-git merge <remote>/<remote-branch-name>
+如果分支已经 push 到远程仓库，也要同步修改远程分支名, 就需要本地改完名之后，将远程分支删掉，再 push 本地分支，再建立跟踪分支。
+
+```bash
+git push --delete origin oldName
+git push origin newName
+git branch --set-upstream-to origin/newName
 ```
-
-将从服务端获取到最新信息的 origin/xxx 分支。git pull  是上面这2条命令的shorthand
-
-### 跟踪远程分支
-
-从远处仓库 checkout 下来的分支就叫 *跟踪分支* (tracking branch)，跟踪分支就是和某个远程分支有建立联系的本地分支，所以可以直接使用 **git push** 和 **git pull** 同远程仓库进行数据交互，Git知道具体是同哪个分支交互，因为已经建立好了跟踪信息
-### 跟踪远程分支
-
-从远处仓库checkout下来的分支就叫 *跟踪分支* (tracking branch)，跟踪分支就是和某个远程分支有直接联系的本地分支，所以可以直接使用 **git push** 和 **git pull** 同远程仓库进行数据交互，Git知道具体是同哪个分支交互，因为已经建立好了跟踪信息
-
-下面2条命令都可以创建跟踪分支，两条命令的作用是等同（这2条命令适用于本地还没有对应分支，需要checkout的情况）
-
-``` Bash
-git checkout -b <local-branch-name> <remote>/<remote-branch-name>
-git checkout --track <remote>/<remote-branch-name>
-```
-
-最后一条命令是上面两条命令的简写，这条命令只有 本地没有 branch-name 这个分支，并且只关联一个 remote，并且 remote 上也有 branch-name 这个分支，那么就会在本地建立 tracking-branch
-
-远程分支名称不可以忽略，否则会默认关联到master
 
 ### 删除分支
 
