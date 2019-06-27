@@ -183,6 +183,9 @@ git branch -u origin/serverfix
 git branch --set-upstream-to=origin/serverfix
 ```
 
+执行完上面的命令后会提示 Branch 'branch-name' set up to track remote branch 'branche-name' from 'remote-name'. 这时候通过 git remote show origin, 就能看到设置分支出现在 Local branches configured for 'git pull'： 下面。
+
+
 如果想要查看设置的所有跟踪分支，可以使用 git branch 的 -vv 选项
 
 ```bash
