@@ -1,5 +1,19 @@
 # debug
 
+## 当前文件
+
+```javascript
+{
+  "type": "node",
+  "request": "launch",
+  "name": "current file",
+  "program": "${file}"
+}
+```
+
+打开任意 .js 文件，左上角 debug 选择 current file， 然后F5就会进入debug.
+
+
 ## 远程调试
 
 ```javascript
