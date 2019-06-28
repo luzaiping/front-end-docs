@@ -11,5 +11,5 @@
 publish 时碰到的问题及解决办法说明
 
 1. npm login 时，按要求填写信息后，提示账号已经被使用。 是因为混淆了注册时填写的 username 和 fullname
-1. npm publish 时，提示 402 。 解决办法， 加上 --access=public， 这样才会把 package 发布到公共仓库。 私有仓库是要收费
-1. npm publis --access=public, 提示 403 forbidden。 原因是 package name 的 scope 写成 @lzp, 而 username 是 lemhion1908, scope 必须是 username，而不能推送到其他scope，不然会没有权限
+1. npm publish 时，提示 402 。 这是因为 package name 是 @lzp/tiny, 带有 scope，默认是发送到 private 仓库。 解决办法： 加上 --access=public， 这样就会发布到公共仓库。
+1. npm publis --access=public, 提示 403 forbidden。 原因是 package name 的 scope 写成 @lzp, 而 username 是 lemhion1908, scope 必须是 username，而不能推送到其他scope，不然会没有权限。package name 改成 @lemhion1908/tiny 就可以了。
