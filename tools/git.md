@@ -322,3 +322,55 @@ git merge feature/basic
 ```bash
 git rebase master feature/basic
 ```
+
+### tag
+
+#### 查看tag
+
+查看所有 tags
+```bash
+git tag // 会显示所有 tag
+git tag -l 'v1.4.2.*' // 显示所有前缀是 V1.4.2 的tag，可以是 V1.4.2.1  V1.4.2.2  等
+git show v1.4        // 查看指定 tag 的完整信息
+```
+#### 新建 tag
+
+##### annotated tag
+
+```bash
+git tag -a v1.4 -m 'my version 1.4'
+```
+上面这条创建一条 v1.4 的 tag， message 是 'my version 1.4'； -a 表示是 annotated tag
+
+##### 签署标签
+
+如果有自己的私钥，还可以用 GPG 来签署标签, 把 -a 改成 -S, (s 取自 signed 首字母)
+
+```bash
+git tag -s v1.5 -m 'my signed 1.5 tag'
+```
+
+##### lightweight tag
+
+这个标签比较简单，不需要任何参数： 不需要 -a， -S 或 -m
+
+#### 追加 tag
+
+如果发现某个重要的提交忘了加 tag，可以后续再回来添加，再后面加上 commit hash 就可以
+
+```bash
+git tag -a v1.2 9fceb02
+```
+这行表示在 9fceb02 这个commit 的时候添加一个 v1.2 的 annotated tag
+
+#### Sharing Tags
+
+默认 git push 是不会将 tag 推送到 remote server，必须在创建后，显示推送到 remote
+```bash
+git push origin v1.5
+```
+这个会将 v1.5 tag push 到 remote。 如果有多个 tag 需要同时推送到 remote，可以使用 --tags
+
+```bash
+git push origin --tags
+```
