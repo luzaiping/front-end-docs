@@ -157,7 +157,7 @@ git push origin serverfix
 git push origin serverfix:awesomebranch
 ```
 
-将本地的 serverfix 分支推送到远程仓库上的 awesomebranch 分支
+将本地的 serverfix 分支推送到远程仓库上的 awesomebranch 分支。 建议 push 后面加上 -u 这样会同时设置跟踪分支，就不需要后面再显示设置了。
 
 ### 跟踪远程分支
 
