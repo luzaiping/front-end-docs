@@ -210,30 +210,6 @@ git push origin --delete serverfix
 
 这个命令只是从服务器上移除这个指针。 Git 服务器通常会保留数据一段时间直到垃圾回收运行，所以如果不小心删除掉了，通常是很容易恢复的。
 
-``` Bash
-git push -u <remote> <local-branch-name>[:remote-branch-name]
-```
-
-这条命令，后面中括号的内容是可选，如果没有提供，则跟本地分支名一样，一般无需提供，保持一致比较好。
-
-运行完这条命令后，远程仓库就会有一个对应的分支了，-u 这个参数表示当前这个是跟踪分支，即这时候可以直接用 git push 和 git pull 来推送或拉取这个分支的内容；当然也可以手动输入对应的仓库和分支名：
-
-``` Bash
-git pull <remote> <remote-branch-name>
-git push <remote> <local-branch-name>
-```
-
-不过每次都要输入远程仓库名和分支显得比较麻烦；
-
-假如在第一次push的时候忘了 __-u__ 这个参数，是只有git push建立了关系，git pull 还没有；那么可以通过下面这2条命令再建立关联，这样就可以直接git pull：
-
-``` Bash
-git branch --set-upstream-to=<remote>/<remote-branch-name> [<local-branch-name>]
-git branch -u <remote>/<remote-branch-name>
-```
-
-这个对于创建分支并且推送到远程的创建者比较适用；而对于其他协作者，可以通过建立跟踪分支，直接就可以push 和 pull
-
 ## 本地仓库管理
 
 ### 重命名分支
