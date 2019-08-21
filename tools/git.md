@@ -145,7 +145,7 @@ git checkout -b serverfix origin/serverfix
 本地分支需要跟其他人共享进行协同工作，就需要将本地分支推送到远程仓库， 可以通过 git push [remote-name] [branch-name] 实现
 
 ```bash
-git push origin serverfix
+git push -u origin serverfix
 ```
 
 这边将本地的 serverfix 分支推送到远程仓库 这个命令要求对 origin 远程仓库有写权限。
