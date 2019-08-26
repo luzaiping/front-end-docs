@@ -283,6 +283,18 @@ git reset --head HEAD^^
 
 注意：这条命令会直接回退到指定的commit所在的版本，那么两个commit之间所有的修改都会被放弃，包括还没 git add 或者 git commit 的文件。所以要慎用和条命令，以防修改的内容被撤销没了。
 
+#### 同步本地的修改到远程
+
+```Bash
+git reset --hard cedc856
+git push --force origin master
+```
+
+本地 reset 后，通过 push --force 强制将本地 reset 结果推送到 origin. 
+
+__注意:__ gitlab 上面的 origin/master 一般会进行 protect, 如果 push 失败，要先看下是否是没有去掉 protected.
+
+
 ### rebase
 
 ``` bash
