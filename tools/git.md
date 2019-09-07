@@ -230,6 +230,18 @@ git push origin newName
 git branch --set-upstream-to origin/newName
 ```
 
+### 文件/文件夹 名称大小写修改
+
+只对 文件(夹)名称 进行大小写修改，比如 Test.js 改成 test.js 要用 mv 的命令
+
+```
+git mv -f Test.js test.js
+```
+
+这样就能将 Test.js 改成 test.js。
+
+注意： 不要直接修改文件名称，比如右键文件重命名 或者 vscode 里 F2 文件进行重命名. 这种方式的修改， git 都认为是没有修改，而实际项目在引入文件是区分大小，就会导致文件 import 不到。
+
 ### 删除分支
 
 feature分支的生命周期比较短，merge到开发分支后，就可以删除了，可以在主分支上运行下面这2个命令，查看目前分支的merge情况
