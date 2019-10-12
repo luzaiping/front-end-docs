@@ -177,11 +177,11 @@
 
 	7.5 css pixel and device pixel
 
-		zoom level =100%: css pixel == device pixel
+		zoom level =100%: css pixel = device pixel
 		zoom level > 100%: css pixel > device pixel
 		zoom level < 100%: css pixel < device pixel
 
-		假设一个div的widht是300px，页面进行缩小或放大，实际的css pixel还是300px，不会随着改变，device pixel也不会变，变的只是这2个pixel的比例
+		假设一个div的width是300px，页面进行缩小或放大，实际的css pixel还是300px，不会随着改变，device pixel也不会变，变的只是这2个pixel的比例
 		也就是一个device pixel等于多少个css pixel。比如放大到200%，那么一个css pixel等于2个device pixel，那么页面宽度上只能放下原来一半宽度的内容了
 
 		在iphone上，screen.width/window.innerWidth 等于 zoom level，zoom level越大，window.innerWidth越小
@@ -194,7 +194,7 @@
 8. rem：
 	Equal to the computed value of font-size on the root element. When specified on the font-size property of the root element, the rem units refer to the property’s initial value.
 
-	1rem = html tag的font-siz
+	1rem = html tag的font-size
 
 	translate fixed pixel to proportional: target / context = result
 
