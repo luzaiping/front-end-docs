@@ -288,7 +288,9 @@ git reset HEAD <filename>
 ``` Bash
 git reset --hard <expected_commit_id>
 git reset --hard HEAD^
-git reset --head HEAD^^
+git reset --hard HEAD^^
+
+git reset --soft HEAD^  // 建议用 --soft 这样reset后，内容还在
 ```
 
 通过git commit提交了某些文件，现在要撤销commit，可以通过该命令实现，回退到前一次commit 通过 —__HEAD^__ , 回退到前两次commit 通过 __HEAD^^__, 回退到任意一次commit，通过 __expected_commit_id__ 实现。
