@@ -153,7 +153,8 @@ git push -u origin serverfix
 推送成功后，其他人就可以通过 git fetch [remote-name] 获取这个分支的数据。
 
 如果要指定远程分支的名称，可以在本地分支名称后面加上 ':remote-branch-name'：
-```
+
+```bash
 git push origin serverfix:awesomebranch
 ```
 
@@ -375,4 +376,25 @@ git push origin v1.5
 
 ```bash
 git push origin --tags
+```
+
+### prune
+
+```bash
+git remote prune origin --dry-run
+```
+
+The command git remote prune origin --dry-run lists branches that can be deleted/pruned on your local. An option --dry-run is needed.
+
+```bash
+git remote prune origin
+```
+
+Now go ahead and actually prune/cleanup the local references by running the command git remote prune origin. Note that you don't need an option --dry-run.
+
+### diff
+
+```bash
+git diff origin/分支名...HEAD                // 列出所有修改文件列表，并且显示出所有的修改差异。
+git diff origin/分支名...HEAD --name-status  // 列出所有修改文件列表，但是不显示差异。
 ```
