@@ -58,7 +58,7 @@ git config user.email
 [关于SSH的配置和使用](https://help.github.com/articles/connecting-to-github-with-ssh/)，这个链接里提供了SSH的配置，内容很详尽；包括检查，生成，以及结合GitHub的配置。这边就不再单独记录了.
 
 ---
-说明：GitBook 目前不支持SSH，只支持Https，所以没有SSH配置的内容。关于如何配置认证信息，Gitbook提供了设置'~/.netrc'文件的办法，不过在个人电脑上试了没有成功；在公司电脑就可以，具体原因只能是后续有机会再研究。Gitbook关于结合git的文章链接如下：[GitBook 结合 Git](https://help.gitbook.com/books/how-can-i-use-git.html)
+说明：GitBook 目前不支持SSH，只支持Https，所以没有SSH配置的内容。关于如何配置认证信息，Gitbook提供了设置`'~/.netrc'`文件的办法，不过在个人电脑上试了没有成功；在公司电脑就可以，具体原因只能是后续有机会再研究。Gitbook关于结合git的文章链接如下：[GitBook 结合 Git](https://help.gitbook.com/books/how-can-i-use-git.html)
 
 ## Git远程仓库相关操作
 

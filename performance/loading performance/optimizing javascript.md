@@ -132,9 +132,9 @@ module.exports = {
    },
   // ...
 };
-```javascript
+```
 
-配置 optimization.splitChunks 将所有 node_modules 里的 dependencies 拆分到单独的 vendors.***.js 文件里。这边还配置了 optiomiztion.runtimeChunk， 这个配置项不清楚是什么意思。 运行 build 后会生成一个 runtime.***.js 文件。
+配置 optimization.splitChunks 将所有 node_modules 里的 dependencies 拆分到单独的 vendors.`***`.js 文件里。这边还配置了 optiomiztion.runtimeChunk， 这个配置项不清楚是什么意思。 运行 build 后会生成一个 runtime.***.js 文件。
 
 上面的配置会将 entry 的所有依赖(不管这个dependency是被一个或多个entry引用) 都抽成 vendors.***.js 文件。不过3个 entry 里可能还包含一些重复的 app code. 更彻底的做法是将这些 app code 也拆分出来：
 
@@ -164,9 +164,9 @@ module.exports = {
   },
   // ...
 };
-```javascript
+```
 
-在 optimization.splitChunks.cacheGroups 里增加一个 commons 配置项, 制定对应的 name 和 minChunks；其中 minChunks 的意思是代码至少在2个 chunks 里重复，才需要拆分出来。再次 build 后，会生成一个 commons.***.js 文件，这个文件包含了 node_modules 里的 dependencies，还有各个 chunks 里的重复代码。而原先的 vendors.***.js 文件不见。相比于前面的配置，commons.***.js 要比 vendors.***.js 文件大，但是3个entry对应的 chunks 文件变小了。这种拆分方式个人觉得要慎重，如果是多个chunks里面的重复代码比较多，那是值得这么做，但是如果不是很多，感觉就没必要，毕竟将 app code 和 vendors 拆分到一起，不利于应用缓存
+在 optimization.splitChunks.cacheGroups 里增加一个 commons 配置项, 制定对应的 name 和 minChunks；其中 minChunks 的意思是代码至少在2个 chunks 里重复，才需要拆分出来。再次 build 后，会生成一个 commons.`***`.js 文件，这个文件包含了 node_modules 里的 dependencies，还有各个 chunks 里的重复代码。而原先的 vendors.`***`.js 文件不见。相比于前面的配置，commons.`***`.js 要比 vendors.***.js 文件大，但是3个entry对应的 chunks 文件变小了。这种拆分方式个人觉得要慎重，如果是多个chunks里面的重复代码比较多，那是值得这么做，但是如果不是很多，感觉就没必要，毕竟将 app code 和 vendors 拆分到一起，不利于应用缓存
 
 #### dynamic splitting
 
