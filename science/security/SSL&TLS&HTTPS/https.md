@@ -67,7 +67,7 @@ hello，咱建立个连接呗，我这边的支持的最高版本是TLS1.1，
 
 这里有几点需要解释：
 + 客户端会把自己最喜欢的密码套件放在最前面，这样服务端就会根据客户端的要求优先选择排在最前面的算法套件
-+ 密码套件是一个密码算法的三件套，包含一个非对称加密算法，一个对称加密算法，以及一个数据摘要算法。以TLS_RSA_WITH_AES_128_CBC_SHA为例，RSA是非对称加密算法，表示后面用到的证书的公钥用的就是RSA算法，通信的过程中需要签名的地方也用这个方法，包括密钥交换也是使用这个算法。AES_128_CBC是对称加密算法，用来加密握手后数据的传输，其密钥是由RSA负责协商生成；SHA是数据摘要算法，所有需要数据校验的地方都是用这个算法。
++ 算法套件是一个加密算法的三件套，包含一个非对称加密算法，一个对称加密算法，以及一个数据摘要算法。以TLS_RSA_WITH_AES_128_CBC_SHA为例，RSA是非对称加密算法，表示后面用到的证书的公钥用的就是RSA算法，通信的过程中需要签名的地方也用这个方法，包括密钥交换也是使用这个算法。AES_128_CBC是对称加密算法，用来加密握手后数据的传输，其密钥是由RSA负责协商生成；SHA是数据摘要算法，所有需要数据校验的地方都是用这个算法。
 + 一个客户端生成的随机数，稍后用于生成 master secret
 + ClientHello里面还包含session id，表示重用前面session里的一些内容；比如已经协商好的算法套件等。服务器收到这个session id后会去内存里面找，如果是一个合法的session id，那么就可以选择重用已有session 信息，这样可以省去很多握手的过程
 
@@ -132,7 +132,7 @@ client->server: 这是我的证书（身份证），请过目
 
 ### ClientKeyExchange
 
-客户端验证完服务端的证书后(如何验证证书后面介绍)，就会生成一个premaster。生成premaster的方式，跟才用的非对称加密算法有关，如果是采用 RSA 算法，那么由客户端自己生成一个48字节长的 premaster 即可。如果是 DHE_RSA 算法，就得结合 ServerKeyExchange 发送过来的信息生成 premaster
+客户端验证完服务端的证书后(如何验证证书后面介绍)，就会生成一个premaster。生成premaster的方式，跟采用的非对称加密算法有关，如果是采用 RSA 算法，那么由客户端自己生成一个48字节长的 premaster 即可。如果是 DHE_RSA 算法，就得结合 ServerKeyExchange 发送过来的信息生成 premaster
 
 ```
 client->server:
@@ -151,6 +151,8 @@ client->server:
 并不是我随便找了一个别人的证书忽悠你
 ```
 
+__注意__: ClientHello 和 ServerHello 过程都是明文传输，从 ClientKeyExchange 开始，也就是客户端完成服务端证书校验后，就会使用非对称加密算法开始交换密钥信息
+
 ### Finished
 
 当前面的过程都没有问题后，服务端和客户端根据得到的信息计算对称加密所需的密钥
@@ -161,13 +163,13 @@ master_secret = PRF(pre_master_secret, "master secret",
                           [0..47];
 ```
 
-pre_master_secret,就是ClientKeyExchange里面客户端发给服务端的premaster。ClientHello.random 和 ServerHello.random分别是双方开始时双方发送的hello请求中的随机字符串。
+pre_master_secret,就是ClientKeyExchange里面客户端发给服务端的premaster。ClientHello.random 和 ServerHello.random分别是握手开始时双方发送的hello请求中的随机字符串。
 
 > 这里加入随机数的原因主要是为了防止重放攻击，保证每次握手后得到的密钥是不一样
 
 由于客户端和服务端所使用的算法和输入参数是一样的，因此计算出来的master_secret也是一样。
 
-之后双方将自己缓存的握手过程中的数据计算一个校验码，再用对称加密算法和刚算出来的master密钥加密，发给对方。这一步有两个目的，一个是保证双方算出来的密钥是一样的，即我这边加密的数据你那边可以解开。另外一个目的是保证两个人通信过程中的每一步都没有被其他人篡改。因为握手的前半部分是明文，所以有可能被篡改。只要双方根据各自缓存的握手过程中的数据算出来的校验码是一样的，说明中间没被人篡改。
+之后双方将握手过程中自己缓存的数据计算出一个校验码，再用对称加密算法和刚算出来的master密钥加密，发给对方。这一步有两个目的，一个是保证双方算出来的密钥是一样的，即我这边加密的数据你那边可以解开。另外一个目的是保证两个人通信过程中的每一步都没有被其他人篡改。因为握手的前半部分是明文，所以有可能被篡改。只要双方根据各自握手过程中缓存的数据算出来的校验码是一样的，说明中间没被人篡改。
 
 ```
 client->server: 这是用我们协商的对称加密算法和密钥加密过的握手数据的指纹，看能不能解开，并且和你那边算出来的指纹是一样的
@@ -240,6 +242,7 @@ CA收到申请文件后，会走核实流程，确保申请人确实是证书描
 $ mkdir cert && cd cert
 
 $ openssl req -newkey rsa:2048 -nodes -sha256 -keyout ca.key -x509 -days 365 -out ca.crt
+
 ```
 
 + -newkey rsa:2048: 生成一个长度为2048的采用RSA算法的私钥
@@ -288,6 +291,10 @@ openssl x509 -text -noout -in domain.crt
 对于服务端而已，至少需要自己的私钥和证书，也就是 domain.key 和 domain.crt
 
 对于客户端而已，至少需要一个 CA 证书，即 ca.crt，不然无法验证服务器的证书是否正确
+
+## 参考引用
+
+[OpenSSL Essentials: Working with SSL Certificates, Private Keys and CSRs](https://www.digitalocean.com/community/tutorials/openssl-essentials-working-with-ssl-certificates-private-keys-and-csrs)
 
 -----------------------------------------------------
 ## 数据证书
