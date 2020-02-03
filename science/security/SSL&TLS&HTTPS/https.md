@@ -255,7 +255,7 @@ $ openssl req -newkey rsa:2048 -nodes -sha256 -keyout ca.key -x509 -days 365 -ou
 
 > 生成的过程中要求填一些信息，其中 Common Name 要填写网站域名，这个要特别注意，否则后面校验证书会失败
 
-__注意：__ 如果是交给商业 CA 进行签名，就不需要这步操作
+__注意：__ 如果是交给商业 CA 进行签名，就不需要这步操作; 如果是内部或者开发使用，使用这种方式，带上 -x509 表示是自签名证书，就可以了
 
 ### 生成私钥和证书申请文件 (certificate Signing Request)
 
@@ -266,6 +266,8 @@ $ openssl req -newkey rsa:2048 -nodes -sha256 -keyout domain.key -new -out domai
 和上面的区别是，这边使用 -new 生成一个证书签名申请文件，而上面用 -x509 生成一个自签名文件
 
 从这边可以看出，CA 的私钥和普通人的私钥没有区别，唯一区别是 CA 用私钥自签名的证书受别人相信，而普通人的自签名证书别人不信，所以需要用 CA 来给证书签名
+
+__注意：__ 采用商业 CA 进行签名，才需要这一步，如果是开发或者内部使用，只需要通过 -x509 生成自签名文件即可
 
 ### 使用 CA 私钥对申请文件进行签名
 
@@ -295,6 +297,8 @@ openssl x509 -text -noout -in domain.crt
 ## 参考引用
 
 [OpenSSL Essentials: Working with SSL Certificates, Private Keys and CSRs](https://www.digitalocean.com/community/tutorials/openssl-essentials-working-with-ssl-certificates-private-keys-and-csrs)
+
+[OpenSSL Essentials](https://www.digitalocean.com/community/tutorials/openssl-essentials-working-with-ssl-certificates-private-keys-and-csrs#about-certificate-signing-requests-(csrs))
 
 -----------------------------------------------------
 ## 数据证书
