@@ -134,7 +134,7 @@ module.exports = {
 };
 ```
 
-配置 optimization.splitChunks 将所有 node_modules 里的 dependencies 拆分到单独的 vendors.`***`.js 文件里。这边还配置了 optiomiztion.runtimeChunk， 这个配置项不清楚是什么意思。 运行 build 后会生成一个 runtime.***.js 文件。
+配置 optimization.splitChunks 将所有 node_modules 里的 dependencies 拆分到单独的 vendors.`***`.js 文件里。这边还配置了 optiomiztion.runtimeChunk，运行 build 后会生成一个独立的 runtime.***.js 文件，从而不会影响 long caching。
 
 上面的配置会将 entry 的所有依赖(不管这个dependency是被一个或多个entry引用) 都抽成 vendors.***.js 文件。不过3个 entry 里可能还包含一些重复的 app code. 更彻底的做法是将这些 app code 也拆分出来：
 

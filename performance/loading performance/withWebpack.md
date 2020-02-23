@@ -117,7 +117,7 @@ module.exports = {
   },
 };
 ```
-如果是设置 mode: 'production' 那么上面的配置可以省略。
+__注意__ 如果是设置 mode: 'production' 那么上面的配置可以省略。
 
 ### Use externals if you have both webpack and non-webpack code
 
@@ -157,4 +157,39 @@ define(["/libraries/react.min.js", "/libraries/react-dom.min.js"], function () {
 这边将 react.min.js 和 react-dom.min.js 作为 amd 的input 提供给 bundle。上面这个配置要求 webpack 里对 react 的引用是 import react from 'react'。 其中引号的 'react' 要跟 externals 的 key (react) 完全一样才行；
 
 ## 使用 long-term caching
+
+使用 webpack 进行 long-term caching，涉及下面几个操作：
+
+### output filenames
+```js
+output: {
+  filename: '[name]-[contenthash].js'
+}
+```
+filename 要指定成根据 content 生成hash。
+
+### Extracting Boilerplate
+```js
+{
+  optimization: {
+    runtimeChunk: 'single'
+  }
+}
+```
+设置成 single，会给所有 chunks 生成一个共用的 runtime。每次 build 后, runtime 都会发生变化，如果不这么设置(值设置为 false)，那么 runtime 的代码默认是包含在最后一个 chunk 里, 这样会导致最后一个 chunk filename 每次 build 都会发生变化，哪怕它所包含的 module 没有变化。
+
+### Module identifiers
+```js
+{
+  optimization: {
+    moduleIds: 'hashed'
+  }
+}
+```
+配置这个，确保内容没有变化的 chunk 所生成的 module id 也不会发生变化 (module id 不清楚是存在哪里，文件命上还是chunk里？)。默认 chunk id 是自增的方式，一旦有 chunk 内容发生变化，所有 chunk 的 module id 都会按顺序往上增加。
+
+
+上面这三个配置是必须的，这样能确保内容没有变化所生成的 chunk filename 就不会变化，从而能有效提示 long-term caching
+
+
 ## 检测和分析app
