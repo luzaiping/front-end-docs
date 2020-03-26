@@ -398,3 +398,9 @@ Now go ahead and actually prune/cleanup the local references by running the comm
 git diff origin/分支名...HEAD                // 列出所有修改文件列表，并且显示出所有的修改差异。
 git diff origin/分支名...HEAD --name-status  // 列出所有修改文件列表，但是不显示差异。
 ```
+
+### CRLF to LF
+
++ add autocrlf=false to system-wide gitconfig         # per-system solution
++ git config --global core.autocrlf false            # per-user solution
++ git config --local core.autocrlf false              # per-project solution
