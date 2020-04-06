@@ -25,6 +25,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 module.exports = {
   optimization: {
     minimizer: [ // 是个数组类型
+    // production mode，这个也得显示配置，不然是不会 minify
       new TerserPlugin({ // TerserPlugin 对象
         cache: true,
         paraller: true,
