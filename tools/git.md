@@ -404,3 +404,10 @@ git diff origin/分支名...HEAD --name-status  // 列出所有修改文件列�
 + add autocrlf=false to system-wide gitconfig         # per-system solution
 + git config --global core.autocrlf false            # per-user solution
 + git config --local core.autocrlf false              # per-project solution
+
+### 取消合并
+
+```sh
+git merge --abort #如果Git版本 >= 1.7.4
+git reset --merge #如果Git版本 >= 1.6.1
+```
