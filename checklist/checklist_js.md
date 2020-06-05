@@ -232,3 +232,46 @@
 + 引用计数算法：有没有其他对象引用到目标对象 (即对象是否不再需要)。
 > 缺点是无法处理循环引用。(如果两个对象相互引用，即使他们已不再使用，垃圾收集器还是认为引用计数不为 0，因此不会进行回收)。老版本的 IE 是使用这种算法
 + 标记清除算法：这个算法把 "对象是否不再需要" 简化定义为 "对象是否可以获得" (现代浏览器都采用这个算法)
+
+### JS 编码能力
+
+1.多种方式实现数组去重、扁平化、对比优缺点
+> 去重 1. loop + indexOf, 2. 排序后过滤  3. 转换成对象  4. [...new Set(arr)]
+> 扁平化  1. 递归 + concat  2. reduce + concat  3. toString  4. spread + while
+
+2.多种方式实现深拷贝、对比优缺点
+> 
+
+3.手写函数柯里化工具函数、并理解其应用场景和优势
+> curry 和 parical 都要会
+
+4.手写防抖和节流工具函数、并理解其内部原理和应用场景
+> debounce (要能支持 immediate，取消， args 和 this)
+> throttle
+
+5.实现一个sleep函数
+> Promise, Generator, async/await, setTimeout 总共四种方式
+> 可以参考[这篇文章](https://github.com/Advanced-Frontend/Daily-Interview-Question/issues/63)
+
+### JS 轮子能力
+
+1. 手动实现call、apply、bind
+> done
+
+2. 手动实现符合Promise/A+规范的Promise、手动实现async await、手动实现 Generator 同步方式实现异步功能
+> todo
+
+3. 手写一个EventEmitter实现事件发布、订阅
+> easy
+
+4. 可以说出两种实现双向绑定的方案、可以手动实现
+> todo
+
+5. 手写JSON.stringify、JSON.parse
+> todo
+
+6. 手写一个模版引擎，并能解释其中原理
+> 需要加强
+
+7. 手写懒加载、下拉刷新、上拉加载、预加载等效果
+> 需要多加强
