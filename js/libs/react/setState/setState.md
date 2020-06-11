@@ -160,14 +160,50 @@ batchedUpdates 是处于一个事务中，该事务在 close 阶段做了两件�
 + 首先将 ReactDefaultBatchingStrategy.isBatchingUpdates 设置为 false，即关闭批量更新的标志位
 + 其次就是调用 ReactUpdates.flushBatchedUpdates，这个方法会涉及到 VDOM 到真实 DOM 的映射，
 
+这边补上一张完整的流程图：
+![setState完整流程图](setStateFullFlow.png)
+
+对照上面的流程图，大概可以分为以下几步：
+1. 将 setState 传入的 particalState 存储在当前组件实例的 _pendingStateQueue 中
+1. 判断 React 当前是否处于批量更新状态 ReactDefaultBatchingStrategy.isBatchingUpdates，如果是将当前组件加入待更新的组件队列中 (dirtyComponents)
+1. 如果未处于批量更新状态，将批量更新状态标识设置为 true，表示要开始批量更新操作；并且用 transaction.perform 调用上面的步骤，保证将当前组件加入到 dirtyComponents 队列中
+1. 调用事务的 waper 方法，遍历 dirtyComponents 依次执行更新。
+1. 执行生命周期函数 componentWillReceiveProps
+1. 将组件的 _pendingStateQueue 中的 state 进行合并，获得最终要更新的 state 对象，并将该队列设置为空
+1. 执行生命周期函数 componentShouldUpdate, 根据返回值判断是否要继续更新
+1. 执行生命周期componentWillUpdate
+1. 执行真正的更新，render
+1. 执行生命周期componentDidUpdate
+
+### 钩子函数和合成事件中
+
+在 react 生命周期和合成事件中调用 setState，此时 react 还处于其他的更新机制中，即 isBatchingUpdates 值是 true。这时候无论调用多次 setState，都只是将 setState 放入 _pendingStateQueue，将当前组件放入 dirtyComponent。当更新机制执行完毕后，以生命周期函数为例，顶层组件的 didmount 会将 isBatchingUpdates 设置为 false，这时将执行之前暂存的 setState
+
 现在再来回顾下为什么 React event handler 里的 setState 是 batching update。
 + React event handler 是被包装在 ReactDOM.unstable_batchedUpdates 函数中
 + unstable_batchedUpdates 会调用 batchingStrategy.batchedUpdates
-+ batchingStrategy.batchedUpdates 会将 isBatchingUpdates 设置为 true
++ batchingStrategy.batchedUpdates 会将 isBatchingUpdates 设置为 true (即此时 React 仍然处于其他的事务中)
 + 之后执行 setState 进入 enqueueUpdate 函数，由于 isBatchingUpdates 是 true
-+ 那么会将 component 放入 dirtyComponents，这个会等同步代码都执行完完再执行，因此看起来像是异步操作
-+ 而其他的场景，由于 isBatchingUpdates 是 false，就会立即执行 batchedUpdates，再通过 transaction.perform 更新状态
++ 那么会将 component 放入 dirtyComponents，然后等当前 transaction 都执行完了之后再执行 (某个时候把 isBatchingUpdates 设置为 false)，因此看起来像是异步操作
++ 而其他的场景，由于 isBatchingUpdates 一开始就是 false，就会立即执行 batchedUpdates，再执行 transaction.perform,
++ transaction.perform 也会把当前组件加入 dirtyComponents, 但是它会立即执行 dirtyComponents
 
 __注意__：在生命周期函数里调用 setState (比如 didMount) 也是 batch update，因为生命周期执行前后都有相应的钩子，分别是 pre钩子 和 post钩子，pre钩子会调用batchedUpdate 将 isBatchingUpdates 设置为 true，开启批量更新，而 post 钩子会将 isBatchingUpdates 设置为 false。 
 
-另外要注意，多次 setState，React 内部是采用 `浅合并` 的方式进行操作数据
+### 异步函数和原生事件中
+在生命周期函数里，根据 JS 异步机制，要等所有同步代码都执行完后才会执行异步代码，这时上一次更新机制已经执行完毕，isBatchingUpdates 的值已经是 false，这时候调用 setState 就可以立即执行更新，拿到最新结果
+
+#### partialState 合并机制
+
+流程里的 _processPendingState 是用于合并 _pendingStateQueue 里的 state，最后返回一个合并后的 state
+```js
+_assign(nextState, typeof partical === 'function' ? partical.call(inst, nextState, props, context) : partical)
+```
+
+这个方法里重点的是上面这段代码，如果传入的 particalState 是对象，很明显会被合并成一次：
+
+```js
+Object.assign(nextState, { index: state.index + 1}, { index, state.index + 1 })
+```
+
+如果传入的是函数（updater）, 函数的参数 nextState 是前一次合并后的结果，因此可以拿到最新值
