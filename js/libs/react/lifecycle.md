@@ -2,6 +2,34 @@
 
 这部分主要记录React组件的生命周期有哪些，每个生命周期的作用和常见用法，以及什么情况生命周期方法会执行，执行时的顺序是如何；另外也包括什么多层组件之间，这些方法是如何执行
 
+## 16 版本的生命周期
+
+![React新生命周期](lifecycle-new.png)
+
+### mounting 阶段
++ constructor(props)
++ getDerivedStateFromProps(props, state)
++ render()
++ componentDidMount()
+
+### updating 阶段 (setState / new props / forceUpdate)
++ getDerivedStateFromProps(props, state)
++ shouldComponentUpdate()
++ render()
++ getSnapshotBeforeUpdate()
++ componentDidUpdate()
+
+### unmounting阶段
++ componentWillUnmount()
+
+__注意__ getDerivedStateFromProps() 方法在 16.3 版本以及 16.3^ 之后的版本有差异：
++ 16.3 版本，该方法仅在 props 发生变更时才会执行
++ 16.3 之后的版本，props 和 state 变动都会触发该方法执行
+
+### 额外的 componentDidCatch
+
+这个是新增的实例方法，只要继承了 React.Component 就可以调用这个方法。通常在最外层组件定义这个方法，用于捕获所有子组件中未处理的异常。
+
 ## 组件生命周期方法详解
 
 React官方文档里关于组件的生命周期方法总共定义了9种，包括:
