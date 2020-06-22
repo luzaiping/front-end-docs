@@ -9,7 +9,7 @@
 
 ### try-catch
 
-try-catch 只能捕获同步的运行时错误，对`语法错误`和`异步错误`是无能为力。当然借助校验工具，比如 ESLint, 语法错误在上学前都会被处理掉。
+try-catch 只能捕获同步的运行时错误，对`语法错误`和`异步错误`是无能为力。当然借助校验工具，比如 ESLint, 语法错误在上线前都会被处理掉。
 
 ```js
 try {
@@ -92,7 +92,7 @@ window.addEventListener('unhandledrejection', e => {
 
 ### React 异常处理
 
-React 16提供了一个 componentDidCatch 组件方法，使用它可以非常简单地获取到 react 组件里的错误信息。包含 componentDidCatch 或 getDerivedStateFromError 的组件也成为是 ErrorBoundary。由于 componentDidCatch 是属于 React.Component 的实例方法，因此只有类组件才可以是 ErrorBoundary。
+React 16提供了一个 componentDidCatch 组件方法，使用它可以非常简单地获取到 react 组件里的错误信息。包含 componentDidCatch 或 getDerivedStateFromError 的组件就是 ErrorBoundary。由于 componentDidCatch 是属于 React.Component 的实例方法，因此只有类组件才可以是 ErrorBoundary。
 
 建议这个项目只用一个 ErrorBoundary，将这个放到最外层，这样可以捕获任何组件异常。注意以下异常是无法被捕获
 
@@ -101,7 +101,7 @@ React 16提供了一个 componentDidCatch 组件方法，使用它可以非常�
 + ssr
 + 发生在 ErrorBoundary 里的异常
 
-由于事件处理函数异常并不会影响 react render，因此及时有异常，也只是功能异常，不会导致UI出现问题。
+由于事件处理函数异常并不会影响 react render，因此即使有异常，也只是功能异常，不会导致UI出现问题。
 
 ### Vue 异常处理
 
@@ -125,7 +125,7 @@ window.frames[0].onerror = function (message, source, lineno, colno, error) {
 };
 ```
 
-在指定 iframe 上监听 onerror
+只要在指定 iframe 上监听 onerror 即可。
 
 ## 处理 script error
 如果出现 script error，基本可以确定是出现了跨域问题。这时候是不会有太多辅助信息，解决思路一般就是通过 cors 处理：
