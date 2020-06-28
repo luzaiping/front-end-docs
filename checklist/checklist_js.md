@@ -240,7 +240,7 @@
 > 扁平化  1. 递归 + concat  2. reduce + concat  3. toString  4. spread + while
 
 2.多种方式实现深拷贝、对比优缺点
-> 
+> JSON.parse(JSON.stringify)、 普通递归、 区分 Array 和 Object 的递归、 支持循环引用的递归
 
 3.手写函数柯里化工具函数、并理解其应用场景和优势
 > curry 和 parical 都要会
@@ -259,7 +259,7 @@
 > done
 
 2. 手动实现符合Promise/A+规范的Promise、手动实现async await、手动实现 Generator 同步方式实现异步功能
-> todo
+> done
 
 3. 手写一个EventEmitter实现事件发布、订阅
 > easy
@@ -268,7 +268,7 @@
 > todo
 
 5. 手写JSON.stringify、JSON.parse
-> todo
+> done
 
 6. 手写一个模版引擎，并能解释其中原理
 > 需要加强
