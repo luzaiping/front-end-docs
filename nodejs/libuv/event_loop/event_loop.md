@@ -1,6 +1,31 @@
 event loop
 ================================
 
+## nodejs 整体架构
+
+首先看下 nodejs 的组成
+![nodejs 组成](./nodejs-allin.png)
+
++ V8: JS 引擎，用于快速执行 JS 代码
++ LibUV: 提供事件轮询的异步 I/O
++ c-ares：用于 DNS 查询，这也是一个 C 编写的库，暴露 DNS 功能给 dns 模块中的 resolve*() 的 functions. lookup 函数使用的是 getaddrinfo，这个会用到 ThreadPool
++ http parser: nodejs 是使用 llhttp (一个由 TS 和 C 编写的库) 来处理 http 解析
++ OpenSSL：被用在 crypto 和 tls 这2个 module
++ zlib：用于快速地压缩和解压缩。nodejs 使用行业标准的 zlib 库，这个库也用于 gzip 和 libpng。nodejs 使用 zlib 来创建 sync, async 和 streaming 压缩和解压缩
+
+nodejs 底层就是由这些 utilities 组成的一个聚合层，从而提供一个高效能的 nodejs runtime。
+
+除了上面这些依赖库之外，nodejs 还依赖于下面3个 tools：
++ npm：模块管理工具
++ gyp：The build system is handled by gyp, a python-based project generator copied from V8
++ gtest：Native code 的测试工具
+
+### libuv
+
+看下 nodejs 官网对 libuv 的定义：
+
+libuv 是一个由 C语言编写的库，用于抽象非阻塞的 I/O 操作，从而提供跨平台的一致 API。它主要用于处理 file system、dns、network、child process、pipes、signal handling、polling and streaming。它也包含一个 ThreadPool 用于分担那些不能通过系统级别实现异步操作的工作。
+
 ## Reactor pattern
 
 ![big picture](./Reactor_pattern.png)
@@ -18,20 +43,22 @@ Nodejs 应用的运行流程就是像上面这个图所示，这个也叫 Reacto
 
 ## Event Demulitiplexer
 
-从上面的描述得知，Event Demulitiplexer 是的作用是接收 I/O 请求，然后调用底层服务完成 I/O 操作，操作后将 I/O 请求对应的 handler 和 event (描述事件信息) 添加到事件队列。
+从上面的描述得知，Event Demulitiplexer 的作用是接收 I/O 请求，然后调用底层服务完成 I/O 操作，操作后将 I/O 请求对应的 handler 和 event (描述事件信息) 添加到事件队列。
 
 我们知道，nodejs 是基于事件的非阻塞模型，那么 Event Demulitiplexer 是如何做到执行 I/O 请求而不阻塞呢。
 
-现代操作系统都提供一个事件通知接口用于异步的 I/O 操作，不同操作系统，这个事件通知接口有不同的实现：
+现代操作系统都提供一个 Event Notification Interface 用于异步的 I/O 操作，不同操作系统，这个事件通知接口有不同的实现：
 
 + Linux 系统使用 epoll
 + BSD systems 系统(比如 macOS )使用 kqueue
 + Solaris 系统使用 event ports
 + Windows 系统使用 IOCP (Input Output Completion Port)
 
-NodeJS 正是使用这些由操作系统提供的底层功能，来完成异步非阻塞的 I/O 请求。
+NodeJS 正是使用这个平台级别的 Event Notifiacton System 来完成异步非阻塞的 I/O 请求。
 
-但是事情并不没有这么简单。因为不是所有 I/O 请求类型都可以之间调用操作系统提供的事件通知接口。比如 File I/O 请求，DNS I/O 请求。对于这些无法通过操作系统直接实现异步处理的请求，Nodejs 底层是通过 ThreadPool 来实现：
+### ThreadPool
+
+但是事情并不没有这么简单。因为不是所有 I/O 请求类型都可以直接调用操作系统提供的事件通知接口。比如 File I/O 请求，DNS I/O 请求。对于这些无法通过操作系统直接实现异步处理的请求，Nodejs 底层是通过 ThreadPool 来实现：
 
 + 默认一个线程池有 4个 线程
 + I/O 请求进来后，启用一个线程去处理，处理结束后通知 Event Demulitiplexer，并将线程放回线程池
@@ -48,57 +75,62 @@ nodejs 就是通过这种方式来实现其他 I/O 请求的异步处理。
 
 Event Demulitiplexer 类似于 Browser 中处理 Timer、Web API、DOM API 的集合，V8 引擎碰到不识别的 API，就将请求转给 Event Demulitiplexer；Event Demulitiplexer 优先使用操作系统特性实现 I/O 请求，如果 I/O 请求类型无法通过操作系统来实现异步操作，那么 Event Demulitiplexer 就会使用 ThreadPool 来完成。
 
-从上图可以看出 Event Demultiplexer 并不是单个原子实体，而是一个处理 I/O 请求的 API 抽象层，这个是属于一个叫 libuv 的库来完成，实际上 Event Demulitiplexer 是 libuv 的一部分。libuv 作为一个抽象层提供 API 供 Nodejs 上面一层(通常是应用代码)调用
-
-__注意__ ThreadPool 也是 libuv 的一部分。
+从上图可以看出 Event Demultiplexer 并不是单个原子实体，而是一个处理 I/O 请求的 API 抽象层，这个都是由 libuv 库来完成，实际上 Event Demulitiplexer 是 libuv 的一部分。
 
 ## Event Queue
 
 libuv 不只包含了 Event Demultiplexer，也包含了 Event Queue。
 
-Event Queue 是一种数据结构(类似于 queue)，用于存储需要被执行的 handler 和 event 信息。和 browser 只有一个 event queue 不同，libuv 包含了4个主要的 queue：
+Event Queue 是一种数据结构(类似于 queue)，用于存储需要被执行的 handler 和 event 信息。和 browser 只有一个 event queue 不同，libuv 包含了4个 queue：
 
-+ Expired timers and intervals queue，包含已经计算好的 setTimeout 和 setInterval 的 callback
-+ I/O Event queue：已经处理完 I/O 的 callbacks，这些 callbacks 通常都是用户代码
-+ Immediates Queue：通过 setImmediate 添加的 callback
++ Expired timers and intervals queue，包含已经计算好的 setTimeout 和 setInterval 的 callback；
++ I/O Event queue：包含已经处理完 I/O 的 callbacks，这些 callbacks 通常都是用户代码；
++ Immediates Queue：通过 setImmediate 添加的 callback；
 + Close Handlers Queue：任何 close event 的 handlers
 
-Event Demulitiplexer 完成 I/O 请求后，就是根据 Event 信息将对应的 handler 加到特定的 queue 里。
+Event Demulitiplexer 完成 I/O 请求后，会根据 Event 信息将 handler 加到对应的的 queue 里。
+
+下面是各个 queue 的执行顺序：
+
+![event-queue](./event-queue.png)
+
+1. 首先执行存储已经计时好的 setTimeout 和 setInterval 所对应的 callbacks；
+2. 然后是处理 I/O callback queue；
+3. 之后执行 setImmediate 的 callback；
+4. 最后是执行 Close event 对应的 handler，执行完后回到步骤1，开启下一个 loop
 
 __注意__：
 
 + 这边用 queue，并不是说就是使用 queue 这种数据结构，只是结构上类似而已。比如 timer 所用的数据结构实际是 min heap
-+ setTimeout 和 setInterval 所设置的 callback，被添加到 queue 里的实时间一定是 >= delay，这是由于 nodejs 需要检查 timer 是否已经计时完成，而这需要点时间，所以如果设置 delay 是 0，并不能保证 callback 一定是立即被添加到 callback 里。
-+ 调用 setImmediate 后，callback 是马上被加到 Immediates Queue 里，但是需要等到这个执行到这个 queue 时，callback 才会被执行
++ 每个 queue 都有最大执行数目的限制，一旦执行 callbacks 超过最大数目限制，就会跳过这个 queue，进入下一个 queue，这样可以避免其他 queue 长期等待
 
-除了上面这 4个 queue，还有2个由 nodejs 维护的 queue：
+### Timer queue
 
-+ Next Ticks Queue: 存储由 process.nextTick 添加的 callback
-+ Other Microtasks Queue：存储其他的 microTasks，比如 resolve promise callback.
+当使用 setTimeout 和 setInterval, nodejs 最终会将对应的 callback 添加到 Timer heap (Timer 使用的是 min heap 数据结构，也是 FIFO)。
 
-## phase
+当一个 timer/interval 指定一个 delay，并不能保证在 delay 时间到达时，callback 就会被调用。callback 被调用的的时机跟系统性能有关（因为nodejs 调用 callback 之前，会先检查是否已经达到 delay 时间，这个操作需要消耗一点 CPU 时间），另外 callback 在 queue 里也需要排队执行。不过可以保证的是，callback 一定不会在指定的 delay 时间之前被调用。
 
-我们知道Browser event loop 模型中只有一个 queue，依次获取 queue 的 callback 执行就可以了。
+可以通过下面的代码验证 callback 调用时间：
+```js
+const start = process.hrtime();
+setTimeout(() => {
+  const end = process.hrtime();
+  console.log(`timeout callback executed after ${end[0]}s and ${end[1]/Math.pow(10, 9)ms}`);
+}, 1000);
+```
+多次执行上面这段代码，会打印类似下面的内容：
 
-在讨论执行顺序前，需要先讲下 phase 概念。phase 是执行一个 queue 的过程，libuv 有4个 queue，因此就涉及到 4个 phase (另外2个不属于 libuv，所以没有对应的 phase)，那么这些 phase 是以什么顺序执行呢？
+timeout callback executed after 1s and 0.006058353ms
+timeout callback executed after 1s and 0.004489878ms
+timeout callback executed after 1s and 0.004307132ms
 
-![event-queue](./event-queue.png)
+### setImmediate queue
 
-上面是各个 queue 的执行顺序图，下面分析下这个图的执行顺序：
+setImmediate 同 setTimeout 类似，但是还是有些区别：
++ setTimeout 用于调度一个 callback 在指定 delay 时间后被执行
++ setImmediate 用于表示一旦 poll phase 结束后，就立即执行 callback。 (poll phase 后面会讲到)
 
-1. 首先执行已经计时好的 setTimeout 和 setInterval 所对应的 callback，一旦这个 queue 执行完成，就进入下一个 phase；
-2. 然后是处理 I/O callback，执行完后进入下一个 phase；
-3. 之后执行 setImmediate 的 callback，执行完后进入下一个 phase；
-4. 最后是执行 Close event 对应的 handler，执行完后回到步骤1，开启下一个 loop
-
-在上面每一个 phase 的后面，event loop 都会查看 Next Ticks Queue 和 Microtasks Queue 是否有需要执行的任务，如果有的话，先执行 Next Ticks Queue，再执行 Microtasks Queue；之后才会真正执行下一个 phase。
-
-__注意__：
-+ process.nextTick 的优先级要高于 micorTasks
-+ process.nextTick 和 micorTasks 在每个 phase 之间执行，这个是适用于 nodejs 11之前的版本，nodejs 11之后，改成在每个 callback 之后就调用(跟 浏览器 一致)
-+ 如果无限循环 process.nextTick 或 micorTasks 会导致其他 phase 没机会被执行，因此需要避免这点
-
-有了上面这部分知识，我们就可以来解答 event loop 相关的问题
+关于 setTimeout 和 setImmediate 的区别，可以使用下面的例子来展示：
 
 ```js
 setTimeout(() => {
@@ -110,11 +142,11 @@ setImmediate(() => {
 });
 ```
 
-多执行几次上面的代码，会发现输出结果的是不固定，有可能 setTimeout 在前，也有可能 setImmediate 在前。
+多执行几次上面的代码，会发现打印结果是不固定，有可能 setTimeout 在前，也有可能 setImmediate 在前。
 
 下面分析下为什么会有这样的输出结果：
 + event loop 先从 timer queue 开始，虽然 setTimeout 指定 delay 为 0，但并不能保证 callback 会立即被添加到 timer queue
-+ 如果 timer queue 还是空，那么就会进入下一个 phase，因此就会先执行 setImmediate (这个在 I/O phase 之后一定会被执行)
++ 如果 timer queue 还是空，那么就会进入下一个 queue，因此就会先执行 setImmediate (这个在 I/O quque 之后一定会被执行)
 + 到下一个 loop，setTimeout 的 callback 已经被添加到 timer queue 了，因此也会被执行
 
 ```js
@@ -137,9 +169,20 @@ fs.readFile(__filename, () => {
 + I/O phase 结束后，是先进入 setImmediate phase，因此先执行 setImmediate queue，所以刚刚加入的 setImmediate callback 就会被执行
 + setImmediate phase 执行结束后，还得先进入 Close event phase，最后再回到 timer phase，然后才会执行 setTimout 的 callback
 
-关于 process.nextTick 和 microTasks 的执行顺序，要特别注意 nodejs 11 和 11之前的版本差异。看下代码：
++ Other Microtasks Queue：存储其他的 microTasks，比如 resolve promise callback.
 
-```
+### process.nextTick 和 microTasks
+
+除了上面这 4个 queue，其实还有2个 queue：
+
++ Next Ticks Queue: 存储由 process.nextTick 添加的 callback
++ micorTaks：存储 promise resolve 或 reject 的 callback
+
+这2个队列并不属于 libuv 的内容，因此跟 event loop 并没有直接关系。但是经常会拿来跟 setTimeout, setImmediate 讨论。
+
+看下之前的事件队列执行顺序图，可以发现在每一个 queue 执行结束后都会先执行这2个队列，然后再进入下一个queue。这个是 nodejs 11 之前版本的行为；11+ 的版本对这个行为做了调整，将这2个的执行顺序改成在任意一个队列的 callback 执行后并且在 event loop 继续之前就执行，而不管当前 event loop 在哪个 phase，即执行时机被提前了。看个例子：
+
+```js
 setTimeout(() => console.log('timeout1'));
 setTimeout(() => {
     console.log('timeout2')
@@ -157,8 +200,6 @@ timeout3
 timeout4
 promise resolve
 
-这是由于 promise 对应的 microTask 是在 setTimeout callback 里，只有 timer queue 里所有 setTimeout callback 都执行完后，才会执行 microTask (换成是 process.nextTick 也是一样)
-
 而 11+ 的版本，输出结果变成：
 
 timeout1
@@ -167,33 +208,64 @@ promise resolve
 timeout3
 timeout4
 
-这是因为 nodejs 调整了 nextTick 和 microTask 的执行顺序了，这2个对应的代码会在当前 callback 执行完后就立马执行，然后再执行下一个 callback。所以会看到 timeout2 后是 promise，然后才是 timeout3。
+由于 process.nextTick 会在 event loop 继续运行前先被执行，这个特性会引发一个问题：如果递归调用 process.nextTick，就会导致其他 phase 都无法执行。
 
-## libuv 和 nodejs I/O
+因此官方更推荐使用 setImmediate，而不是 process.nextTick
 
-上面讲的主要是 timer queue 和 setImmediate queue，以及 process.nextTick、 microTask。这部分主要涉及 libuv I/O。
+而 process.nextTick
 
-前面说到 libuv 有4个 queue，分别对应 4个 phase，而实际 libuv 有 7个 phase：
+__注意:__
++ process.nextTick 的优先级要比 micorTasks 更高
++ 这边的 microTask 指的是 natvie promise，如果是其他类似 promise，有的是使用 process.nextTick 实现，有的是使用 setImmediate 实现，行为跟 native promise 还是有差别
+
+## event loop
+
+### 定义
+
+event loop 就是允许 nodejs 执行非阻塞 I/O 操作。虽然 JS 是单线程，但是它可以将操作分担给系统内核处理。由于大多数系统内核都是多线程，它们可以在后台同时执行多个操作。一旦操作完成后，系统内核就会通知 nodejs，这样操作对应的 callback 就会被添加到 poll queue 里，并最终被执行。
+
+当 nodejs 启动时，会先初始化 event loop，处理已提供的输入脚本，输入脚本可能会执行一些异步 API，调度 timers 或者调用 process.nextTick; 然后 nodejs 开始处理 event loop。
+
+### phase
+
+前面说到 libuv 包含 Event Queue 概念 (其中有4个 queue)，而 libuv 还有 7个 phase，phase 说明了 event loop 的执行顺序：
 
 ![phase-all-in](./phase-all-in.jpeg)
 
-那么这 7个 phase 和 前面 4个 phase 有什么区别和关联呢？
+每个 phase 都有一个 FIFO 的 callbacks queue 需要被执行。当 event loop 进入指定的 phase，就会执行特定于该 phase 的操作，然后执行 callbacks，一直执行到queue为空 或者超过最大的 callbacks 数目。一旦 queue 被执行完成 或者执行callbacks 超过最大数目限制，就会进入下一个 phase。
 
-1. Timers: 处理通过 setTimeout 和 setInterval 添加的已经计时完成的 callback
+由于每个 callback 都可能再调用其他 I/O 操作 或者 timer，所以当 callback 执行期间，会有其他 callback 被添加到 poll queue 里，这也是为什么有些 timer 的callback执行时机要比设定的 delay 晚。
+
+那么这 7个 phase 和 前面 4个 queue 有什么区别和关联呢？
+
+1. Timers: 处理通过 setTimeout 和 setInterval 添加的已经计时完成的 callbacks
 2. Pending I/O callbacks：处理已经完成 I/O 操作的 callback，也称作 pending I/O callbacks (等待执行的 I/O 回调函数)
 3. Idle handlers：执行一些 libuv 内部的东西
 4. Prepare Handlers: 在 poll I/O 前做一些准备工作
 5. I/O Poll: 等待I/O 操作的完成。这个是可选的 phase
 6. Check handlers：执行一些事后的 work，setImmediate 的 callbacks 就是在这个 phase 被调用
-7. Close handlers：执行任何 close event 的 handler
+7. Close handlers：执行任何 close event 的 handler，比如 socket.on('close', ...)
 
-这边比之前多出来了3个 phase：Idle handlers，Prepare Handlers，I/O Poll；前面2个都是 libuv 内部工作，无需特别关注，这边重点看下 I/O Poll。
+Idle handlers，Prepare Handlers，I/O Poll，这3个 phase 跟 queue 没有直接关系，其中前面2个是 libuv 内部工作，一般无需特别关注，这边重点看下 I/O Poll。
 
-从上面的说明可以看到 I/O poll 是等待 I/O 操作的完成，那就是阻塞操作。而我们知道 nodejs 推崇的是非阻塞，这边采用阻塞操作，不就影响了其他操作了吗
+poll phase 主要完成两个功能：
+
++ 计算可以用于阻塞轮询的时间
++ 执行 poll queue 里的 events
+
+从上面的说明可以看到 I/O poll 是等待 I/O 操作的完成，也就是阻塞操作。而我们知道 nodejs 推崇的是非阻塞，这边采用阻塞操作，不就影响了其他操作了吗
 
 实际上这个 phase 不是一定会执行的，它是属于 optional，是有一定的执行条件：
 + 如果当前没有 pending tasks，即所有 queue 都是空的，那么就允许执行 I/O poll，等待正在执行中的 I/O 完成
 + 等待时间是要求，会在最近一个 timer goes off 前结束等待，然后重新激活 loop
+
+一旦进入 poll phase，one of the two things will happen：
++ 如果 poll queue 不为空，event loop 会轮询 queue callback，并同步执行直到 callback 都被执行完或者系统允许运行时间已经到达
++ 如果 poll queue 为空：
+> + 如果脚本调用了 setImmediate, 那么事件循环就会结束 poll phase, 进入 check phase 执行 setImmediate 的 callback
+> + 如果脚本没有调用 setImmediate, event loop 会等待 callbacks 被添加到 queue 里，并且立即执行 callbacks。
+
+对于一个 web 应用，比如 express，启动完之后，很快就会进入 poll phase, 在这个阶段会等待新的 http request 进来，在这个过程中，如果没有 timer / setImmediate 等定时器，那么会一直处于 poll phase
 
 ## event loop best practice
 
