@@ -255,27 +255,158 @@ write('hello', () => {
 })
 ```
 
-
 ## 实现 Stream
 
 注意实现 stream，不可以调用消费 Stream 的那些公共方法，比如 read()、write()、end()、cork(), 或者通过 .emit() 触发 'error', 'data', 'finish' 等事件
 
-### Readable
-
-readable 的工作流程：
-
-底层数据源 -> readable -> _read -> push -> buffer -> consumer
-
-要实现一个 readable 重点就是实现 _read 方法，通常在 _read 方法中对读取到的数据进行处理，然后调用 push 将处理后的数据添加到 buffer；consumer 通过 read 方法读取 buffer 中的数据 (也可以通过监听 data 事件)
-
-#### 实现方式
-
-实现方式有三种：
+### 实现方式
 
 + class 方式：创建一个 class 继承 Readable, 实现 _read 方法
 + ES5 方式：构造函数 + util.inherits，在 prototype 上实现 _read 方法
 + 简化的构造函数方式：直接 new Readable() 构造函数参数提供 { read: function() {...} }，这边的 read 方法其实就是 _read 方法的实现
 
-自定义 Readable 的核心就是实现 _read 方法, 这个方法的核心是:
-+ 从其他数据源读取数据
-+ 调用 readable.push() 将数据加到内部数据队列
+### Readable
+
+Readable 的工作流程：
+
+1. 调用 Readable 内部方法 _read
+2. 从底层资源获取数据 (可以是文件，网络，数据库等等)
+3. 调用 readable.push() 将数据添加到内部 queue 中，再次调用 _read，持续将数据添加到 queue 里
+4. consumer 读取 queue 中的数据
+
+实现 Readable 的核心是编写 _read 方法，通常在这个方法中会获取需要读取的数据，可能会再做些处理，然后调用 push 将数据推送到 queue 供 consumer 使用。
+
+#### _read()
+
+`readable._read(size)`，这个方法不能被应用程序代码直接调用。应该由子类来实现，且只能被 Readable 类的内部方法调用。所有 Readable 的实现必须提供 readable._read() 方法从底层资源获取数据。
+
+当  readable._read() 被调用时，如果从底层资源读取到数据，则需要开始使用 this.push(dataChunk) 推送数据到读取队列。_read() 应该持续从资源读取数据并推送数据，直到 readable.push() 返回 false。
+
+实际例子测试发现 _read() 会在 readable 被使用时 (流的消费者监听了 readable 或者 data 事件，事件函数可以是空函数) 被调用一次。如果 _read 方法里通过 this.push() 推送数据到队列中，那么 _read 方法会一直被调用；如果 this.push() 的参数是 null，那就表示流的结束 (EOF), 这种情况就会终止调用 _read 方法。因此在实际实现中要注意 this.push() 的终止情况，无限调用 _read()
+
+####  push()
+
+`readable.push(chunk[, encoding])`, 当 chunk 是 Buffer、UInt8Array 或者 string 时，chunk 数据会被添加到内部队列中供流消费。在没有数据可写入后，给 chunk 传入 null 表示流的结束。
+
+当 Readable 处于 Pause Mode 时，消费者可以监听 **readable** 事件，并在事件处理函数中调用 ***readable.read()*** 读取被 push 推送到队列中的数据。(通常需要递归调用 ***readable.read()***)
+当 Readable 处于 Flowing Mode 时，消费者可以通过监听 **data** 事件，在事件处理函数中读取队列中的数据。
+
+#### 异常处理
+
+在 `readable._read()` 执行期间发生的错误，必须通过 ***readable.destroy(err)*** 方法冒泡。从 ***readable._read()*** 中抛出 Error 或 手动触发 *error* 事件会导致不明确的行为。
+
+```js
+const { Readable } = require('stream');
+
+const myReadable = new Readable({
+  read(size) {
+    const err = checkSomeErrorCondition();
+    if (err) {
+      this.destory(err); // 销毁流，并将 err 冒泡
+    } else {
+      // do some more
+    }
+  }
+})
+```
+
+#### 总结
+
++ 实现一个 Readable 的核心是编写 _read 方法
++ 在 _read 方法中调用 this.push() 将读取到的数据推送到 queue
+
+这样一个 Readable 类就完成了。之后就是 Readable 被使用的情形。
+
+看个实现的例子：
+```js
+const { Readable } = require('stream');
+
+class Counter extends Readable {
+  constructor(opt) {
+    super(opt);
+    this.max = 1000000;
+    this.index = 1;
+  }
+
+  _read() {
+    const i = this.index++;
+    if (i > this.max) {
+      this.push(null); // 超过 this.max 就终止推送数据到 队列中
+    } else {
+      const str = String(i);
+      const buf = Buffer.from(str, 'ascii');
+      this.push(buf); // 推送数据到 队列中
+    }
+  }
+}
+```
+
+### Writable
+
+writable 工作流程：
+
+1. 应用程序通过 writable.write 方法将数据写入数据队列中；
+1. 实现类执行 writable._write 方法从内部数据队列中读取数据
+1. 在 _write 方法中将数据写入底层资源
+1. 当 callback 被调用，表示缓冲中的数据被写入底层资源 (callback 第一个参数不是 Error 对象的情形)
+
+这个过程如下：
+
+数据 -> buffer -> _write -> destination
+
+这个过程跟 readable 刚好是相反。
+
+实现 writable 的关键是实现 _write 方法，在这个方法中将 buffer 中的数据写入到 destination，比如将数据写入文件。
+
+**注意：** 必须在 _write 方法中调用 callback 函数。
+
+#### _write(chunk, encoding, callabck)
+
+所有 writable 的实现类必须提供 *writable._write()* 或者 *writable._writev()* 方法将数据发送到底层资源。
+
+必须在该方法内部同步或者异步地调用 callback 函数，以表明成功写入数据或者发生错误而失败。如果调用失败，callback 的第一个参数必须是 Error 对象。
+
+在 *_write* 被调用之后且 *callback* 被调用之前，所有对 *writable.write()* 的调用都会把要写入的数据缓冲起来。当调用 callback 时，流将会触发 *'drain'* 事件。即调用 *writable.write()* 是将要写入的数据加入缓冲中，而 callback 调用之后表示缓冲数据已经被写入底部资源，这时候 buffer 已经被排空，因此可以继续被写入，所以会触发 *'drain'*
+
+不同于 _read(), _write() 是在 writable.write() 被调用时才执行，执行几次 writable.write(), _write() 会被相应调用几次。
+
+#### 异常处理
+
+在调用 writable._write()、writable._writev() 和 writable._final() 的处理期间发生的错误必须通过调用 callback 并将 Error 作为第一个参数来冒泡。
+
+如果 Readable 流通过管道传送到 Writable 流时，Writable 触发了错误，那么 Readable 流将会被取消管道。
+
+### Transform
+
+Transform 的工作流程：
++ 读取通过 write() 写入到 internal buffer 的数据
++ 对数据进行处理
++ 调用 push() 将处理后的数据写入可读的 internal buffer 供其他 consumer 读取
+
+### _transform(chunk, encoding, callback)
+
+chunk 是 stream.write() 的 string 转换而来。如果流的 decodeStrings 选项为 false 或者流在对象模式下运行，则 chunk 不会被转换，而是直接使用 stream.write() 写入的内容。
+
+所有 Transform 的实现都必须提供 _transform() 方法来接收输入并生成输出。*transform._transform()* 的实现会处理写入的字节，进行一些计算操作，然后使用 readable.push() 输出到可读流。
+
+每次输入的数据块，transform.push() 可能会被调用零次或多次以用来将数据转换成输出。具体被调用多少次，取决于需要多少输入的数据来产生输出结果。(比如 zlib，可能需要多个输入 chunk，才需要 push 一组数据到 readable buffer 里)。因此输入的数据块也有可能不会产生任何输出。
+
+当数据加入到 internal buffer 并被完全消费之后，必须调用 callback 函数。当处理输入的过程中发生错误时，callback 的第一个参数传入 Error 对象，否则传入 null。如果 callback 传入了第二个参数，则这个参数会被转发到 readable.push()。
+
+```js
+tranform.prototype._transform = function(data, encoding, callback) {
+  this.push(data);
+  callback();
+}
+// 下面这段代码跟上面的类似
+tranform.prototype._transform = function(data, encoding, callback) {
+  callback(null, data);
+}
+```
+
+### _flush(callback)
+
+某些情况下，转换操作可能需要在流的末尾发送一些额外的数据。例如，zlib 压缩流时会存储一些用于优化输出的内部状态。当流结束时，这些额外的数据需要被 flush 才算完成压缩。
+
+自定义的 Transform 的 _flush 是可选。当没有更多数据需要被消费时，就会调用这个方法。在这个方法中，readable.push() 可能会被调用零次或多次。当 flush 操作完成时，必须调用 callback 函数。
+
