@@ -198,6 +198,6 @@ Reporter.send = function(data) {
 + 可疑区增加 try-catch
 + window.onerror 全局监控 JS 异常
 + window.addEventListener 全局监控静态资源异常
-+ unhandlerrejection 全局捕获没有 catch 的 promise 异常
++ unhandledRejection 全局捕获没有 catch 的 promise 异常
 + VUE errorHandler 和 React componentDidCatch
 + 跨域 crossorigin 解决
