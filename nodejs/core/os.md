@@ -26,14 +26,14 @@ __注意__: 通过 console.log 打印 os.EOL 是看不到具体内容，只能�
 
 返回一个对象数组，其中每个对象包含每个逻辑 CPU 内核的信息：
 
-+ model: **<string>**
-+ speed：**<number>** 为 兆赫兹 (MHz) 为单位
-+ times: **<object>**
-   - user **<number>** CPU 在 user mode (用户模式) 下花费的毫秒数
-   - nice **<number>** CPU 在 nice mode (良好模式) 下花费的毫秒数。这个仅在 POSIX 系统有效，在 windows 系统上，值都为 0
-   - sys **<number>** CPU 在 sys mode (系统模式) 下花费的毫秒数
-   - idle **<number>** CPU 在 idle mode (空闲模式) 下花费的毫秒数
-   - irq **<number>** CPU 在 irq mode (中断请求模式) 下花费的毫秒数
++ model: `<string>`
++ speed：`<number>` 为 兆赫兹 (MHz) 为单位
++ times: `<object>`
+   - user `<number>` CPU 在 user mode (用户模式) 下花费的毫秒数
+   - nice `<number>` CPU 在 nice mode (良好模式) 下花费的毫秒数。这个仅在 POSIX 系统有效，在 windows 系统上，值都为 0
+   - sys `<number>` CPU 在 sys mode (系统模式) 下花费的毫秒数
+   - idle `<number>` CPU 在 idle mode (空闲模式) 下花费的毫秒数
+   - irq `<number>` CPU 在 irq mode (中断请求模式) 下花费的毫秒数
 
 ## os.endianness()
 
@@ -76,13 +76,13 @@ __注意__: 通过 console.log 打印 os.EOL 是看不到具体内容，只能�
 
 分配的网络地址对象上可用的属性包括：
 
-+ address *<string>* 分配的 IPv4 或 IPv6 地址。
-+ netmask *<string>* IPv4 或 IPv6 的子网掩码
-+ family *<string>* IPv4 或 IPv6
-+ mac *<string>* 网络接口的 MAC 地址
-+ internal *<boolean>* 不可远程访问的回环接口或类似的接口，就返回 true；否则返回 false
-+ scopied *<number>* 数值型的 IPv6 作用域 ID (仅当 family 是 IPv6 时才有意义)
-+ cidr *<string>* 以 CIDR 表示法分配的带有路由前缀的 IPv4 或 IPv6 地址。如果 netmask 无效，则此属性会被设为 null。
++ address `<string>` 分配的 IPv4 或 IPv6 地址。
++ netmask `<string>` IPv4 或 IPv6 的子网掩码
++ family `<string>` IPv4 或 IPv6
++ mac `<string>` 网络接口的 MAC 地址
++ internal `<boolean>` 不可远程访问的回环接口或类似的接口，就返回 true；否则返回 false
++ scopied `<number>` 数值型的 IPv6 作用域 ID (仅当 family 是 IPv6 时才有意义)
++ cidr `<string>` 以 CIDR 表示法分配的带有路由前缀的 IPv4 或 IPv6 地址。如果 netmask 无效，则此属性会被设为 null。
 
 ```json
 {

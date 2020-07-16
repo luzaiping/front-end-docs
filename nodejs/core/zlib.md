@@ -25,16 +25,16 @@ Deflate 和 Inflate 有对应的 *Raw 类，这个跟没有 Raw 类的区别是�
 
 每一个类都有一个 options 对象。所有的选项都不是必需的。有一些选项只跟压缩有关，应用到解压缩时会被忽略：
 
-+ flush：**<integer>** 默认值是 zlib.constants.Z_NO_FLUSH
-+ finishFlush：**<integer>** 默认值是 zlib.constants.Z_FINISH
-+ chunkSize: **<integer>** 默认值是 `16 * 1024`
++ flush：`<integer>` 默认值是 zlib.constants.Z_NO_FLUSH
++ finishFlush：`<integer>` 默认值是 zlib.constants.Z_FINISH
++ chunkSize: `<integer>` 默认值是 `16 * 1024`
 + windowBits
-+ level: **<integer>** 压缩才有的选项
-+ memLevel：**<integer>** 压缩才有的选项
-+ strategy：**<integer>** 压缩才有的选项
-+ dictionary：**<Buffer> | <TypedArray> | <DataView> | <ArrayBuffer>** (只能是 deflate/inflate，默认是空目录）
-+ info: **<boolean>** 如果为 true，则返回一个包含 buffer 和 engine 的对象
-+ maxoutputLength：**<integer>** 当使用便利的方法时，这个选项用于限制 output size。默认是 *buffer.kMaxLength*
++ level: `<integer>` 压缩才有的选项
++ memLevel：`<integer>` 压缩才有的选项
++ strategy：`<integer>` 压缩才有的选项
++ dictionary：`<Buffer> | <TypedArray> | <DataView> | <ArrayBuffer>` (只能是 deflate/inflate，默认是空目录）
++ info: `<boolean>` 如果为 true，则返回一个包含 buffer 和 engine 的对象
++ maxoutputLength：`<integer>` 当使用便利的方法时，这个选项用于限制 output size。默认是 *buffer.kMaxLength*
 
 对于 Brotli-based 的类，可以接收属于 Brotli 的 options 对象。具体就不展开了。
 
