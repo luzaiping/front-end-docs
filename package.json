@@ -1,0 +1,23 @@
+{
+  "name": "front-end-docs",
+  "version": "1.0.0",
+  "description": "这是关于学习笔记的记录，主要是前端 和 计算机基础 的内容。",
+  "main": "test.js",
+  "dependencies": {
+    "@types/node": "^14.0.23"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luzaiping/front-end-docs.git"
+  },
+  "author": "lzp",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/luzaiping/front-end-docs/issues"
+  },
+  "homepage": "https://github.com/luzaiping/front-end-docs#readme"
+}
