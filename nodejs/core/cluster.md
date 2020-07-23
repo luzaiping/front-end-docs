@@ -72,7 +72,7 @@ cluster.on('exit', (worker) => {
 + worker `<cluster.Worker>`
 + address `<Object>`
 
-当在一个 worker 里调用 `listen()` 后，worker 上的 server 会触发 'listening' 事件，同时 master 上 cluster 也会触发 'listening' 事件
+当在一个 worker 里调用 `listen()` 后(其实调用的是 server.listen() 即 worker 的 server 开始监听服务)，worker 上的 server 会触发 'listening' 事件，同时 master 上 cluster 也会触发 'listening' 事件
 
 事件处理函数的 address 参数是一个对象类型，包含了以下连接属性：address, port, addressType。当 worker 同时监听多个地址时，这些参数就非常有用：
 
@@ -300,3 +300,113 @@ if (cluster.isMaster) {
   });
 }
 ```
+
+#### online 事件
+
+类似于 `cluster.on('online')`
+
+```js
+cluster.fork().on('online', () => {
+  // worker is online
+})
+```
+
+这个事件不会在 worker 中触发
+
+### 方法
+
+#### worker.disconnect()
+
++ Returns `<cluster.Worker>`
+
+如果是在 worker 里调用，这个方法会关闭运行在该 worker process 上的所有 servers，之后等待这些 servers 触发 close 事件，然后再断开 IPC channel.
+
+如果是在 master 里调用，会给 worker 发送一个内部消息，引起 worker 自身调用 `.disconnect()`
+
+当一个 server 关闭后，它就不会再接收任何新的 connection，新的 connection 可以由其他正常开启监听服务的 worker 接收处理。当所有 connection 都关闭后，当前 worker 的 IPC channel 就会被关闭。
+
+以上情况只针对 server connections，client connections 是不会被 worker 自动关闭，并且 worker 也不会等待 client connection 关闭后再退出。
+
+由于长时间运行的 server connections 会导致 worker 无法正常退出，可以采取发送特定的消息，让应用采取相应的操作来关闭 connections。也可以通过设置 timeout，当指定 timeout 时间后还没触发 'disconnect' 就强制执行关闭操作：
+
+```js
+if (cluster.isMaster) {
+  const worker = cluster.fork();
+
+  let timeout;
+
+  worker.on('listening', (address) => {
+    console.log('==== receive work is listening ====');
+    worker.send('shutdown'); // 向 worker 发送消息
+    // worker.disconnect(); // 这个会在内部提示对应 worker 执行断开连接
+
+    // 指定时间内，如果 worker 还没断开连接，就执行 kill 操作
+    timeout = setTimeout(() => {
+      console.log('==== reach timeout ====');
+      worker.kill();
+    }, 2000);
+  });
+
+  worker.on('disconnect', () => {
+    console.log('==== disconnect ====');
+    clearTimeout(timeout); // 如果已经断开了，就清除定时器
+  });
+} else if (cluster.isWorker) {
+  const net = require('net');
+
+  const server = net
+    .createServer((socket) => {
+      // connection never end
+    });
+
+  server.listen(7000, () => {
+      console.log('server is listening on 7000');
+    });
+
+
+  process.on('message', (msg) => {
+    if (msg === 'shutdown') {
+      console.log('worker receive message to shutdow.');
+      // 接收到关闭消息，执行关闭操作
+      // cluster.worker.disconnect(); // 这个会报错
+      // server.close(); // 这个并没有关闭 worker
+    }
+  })
+}
+```
+
+#### worker.isConnected()
+
+This function return true if the worker is connected to its master via its IPC channel, false otherwise. worker 在被创建之后会自动连接到 master。当 disconnect 事件触发后，才会断开。
+
+#### worker.isDead()
+
+This function returns true if worker's process has terminated (either because of exiting or being signed). otherwise, it returns false.
+
+#### worker.kill([signal])
+
+This function will kill the worker. In the master, it does this by disconnecting the worker.process, and once disconnected, killing with signal. In the worker, it does it by disconnecting the channel, and then exiting with code 0.
+
+#### worker.send()
+
+### 属性
+
+#### worker.id
+
++ `<number>`
+
+Each new worker is given its own unique id, this id is stored in the worker.id
+
+如果 worker is alive, id 也会存在于 cluster.workers 的索引里
+
+#### worker.process
+
+所有 workers 都是通过 `child_process.fork()` 创建，这个方法的返回的对象被存储在 worker.process 里。如果是在 worker process 里，直接访问 process 即可，因为 process 是全局对象。
+
+```js
+const cluster = require('cluster');
+if (cluster.isWorker) {
+  console.log(cluster.worker.process === process);
+}
+```
+
