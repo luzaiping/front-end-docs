@@ -411,3 +411,11 @@ git diff origin/分支名...HEAD --name-status  // 列出所有修改文件列�
 git merge --abort #如果Git版本 >= 1.7.4
 git reset --merge #如果Git版本 >= 1.6.1
 ```
+
+### 移除某个已加入 git 仓库的文件夹
+
+```sh
+git rm -r --cached some-directory
+git commit -m 'Remove the now ignored directory "some-directory"'
+git push origin master
+```
