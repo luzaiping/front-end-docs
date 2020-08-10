@@ -167,7 +167,7 @@ batchedUpdates 是处于一个事务中，该事务在 close 阶段做了两件�
 1. 将 setState 传入的 particalState 存储在当前组件实例的 _pendingStateQueue 中
 1. 判断 React 当前是否处于批量更新状态 ReactDefaultBatchingStrategy.isBatchingUpdates，如果是将当前组件加入待更新的组件队列中 (dirtyComponents)
 1. 如果未处于批量更新状态，将批量更新状态标识设置为 true，表示要开始批量更新操作；并且用 transaction.perform 调用上面的步骤，保证将当前组件加入到 dirtyComponents 队列中
-1. 调用事务的 waper 方法，遍历 dirtyComponents 依次执行更新。
+1. 调用事务的 wrapper 方法，遍历 dirtyComponents 依次执行更新。
 1. 执行生命周期函数 componentWillReceiveProps
 1. 将组件的 _pendingStateQueue 中的 state 进行合并，获得最终要更新的 state 对象，并将该队列设置为空
 1. 执行生命周期函数 componentShouldUpdate, 根据返回值判断是否要继续更新
