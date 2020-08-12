@@ -1,6 +1,6 @@
-ArrayBuffer & TypedArray & DataView
+ArrayBuffer/TypedArray/DataView 介绍
 
-这个文档讲解 ES6 新引入的用于处理二进制数据的 API。先看下这3个的关系：
+这三个是 ES6 引入的用于处理二进制数据的 API。先看下这3个的关系：
 
 ![relation](./typed-arrays.jpg)
 
@@ -17,7 +17,7 @@ const arrayBuffer = new ArrayBuffer(8); // 分配一个8字节的内存缓冲区
 console.log(arrayBuffer.byteLength); // 8，返回字节长度
 const sliceBuffer = arrayBuffer.slice(4, 6); // 创建一个包含部分内容的新缓冲区，这边的 4 是起始索引， 6 是结束索引(不包含在内)，即包含2个字节，
 console.log(sliceBuffer.byteLength); // 2, 
-const view = new Int32Array(buffer); // 创建一个 Int32Array，用于读取或写入这个字节缓冲区，一个 Int32Array 每个元素占4字节，因此这个缓冲区只能写入2个这个类型的元素
+const view = new Int32Array(buffer); // 创建一个 Int32Array，用于读取或写入这个字节缓冲区，一个 Int32Array 每个元素占4字节，因此这个缓冲区只能写入1个这个类型的元素
 ```
 
 ## TypedArray
@@ -83,7 +83,7 @@ buf2.toString();
 
 ### 创建对象
 
-创建 TypedArray 对象有3种构造方式
+创建 TypedArray 对象有3种方式
 
 #### 指定 ArrayBuffer
 ```js
@@ -134,10 +134,9 @@ console.log(int1.buffer === int2.buffer); // false，由于2个类型是不一�
 
 ### 同 Array 的差异
 
-可以把 TypedArray 类比成 Array，它是可以对一个字节数组进行读写操作，它们有一组公告的API
+可以把 TypedArray 类比成 Array，它是可以对一个字节数组进行读写操作，它们有一组公共的API
 
 下面列举下不相同的 API：
-
 
 #### index 赋值
 
