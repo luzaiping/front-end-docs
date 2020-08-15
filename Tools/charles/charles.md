@@ -15,13 +15,14 @@ charles 默认就能显示 http 抓包信息；如果是 https，那么需要安
 
 __注意__ 这个安装过程容易配置错的一个地方是证书安装完后不是 可信任的证书，这是由于 证书存储 位置那边没有选择 '受信任的根证书颁发机构' 导致；另外就是忘了勾选 Enable SSL Proxying。
 
+![gif](./proxy.gif)
 
 ## 配置代理抓包
 
 这个主要是用于抓包手机数据。这边以 iphone 为例：
 
 1. 点开手机里的 无线局域网，选择跟 电脑 连接的同一个 wifi (必须是同一个 wifi，否则无法代理)
-2. 点开 wifi 右边的 感叹号，拉到最底部，点击 配置代理，选择 手动，输入 服务器 和 端口 (服务器和端口可以通过 charles -> Help -> SSL proxying -> Install Charles Root Certificate on a mobile device or remote browser，在弹开的窗口里可以看到 host 和 port)
+2. 点开 wifi 右边的 感叹号 -> 拉到最底部，点击 配置代理 -> 选择 手动 -> 输入 服务器 和 端口 (服务器和端口可以通过 charles -> Help -> SSL proxying -> Install Charles Root Certificate on a mobile device or remote browser，在弹开的窗口里可以看到 host 和 port)
 3. 配置完手动代理后，通常 charles 这边会弹窗提醒有 proxy 请求连接，选择 允许 即可
 4. 之后用手机上的浏览器访问这个地址：chls.pro/ssl，网站会提醒下载证书，选择下载即可
 5. 回到手机 设置 -> 通用 -> 描述文件与设备管理 -> 然后安装证书
@@ -29,5 +30,3 @@ __注意__ 这个安装过程容易配置错的一个地方是证书安装完后
 
 经过上面一通配置之后，通过手机访问 https 网站，就能在 charles 看到抓包到数据，并且 https 数据也解密成功。
 
-![开启SSL](./SSL_enable.png)
-![配置host](./HOST_PORT.PNG)
