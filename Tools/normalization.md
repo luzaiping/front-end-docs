@@ -200,9 +200,41 @@ npm i -D conventional-changelog-cli
   }
 }
 ```
+-p 参数指定要使用的 commit message 标准；-s 表示读写 changelog 为同一文件。这条命令产生的 changelog 是基于上次 tag 版本之后的变更（Feature、Fix、Breaking Changes等等）所产生的，如果想生成之前所有 commit 信息产生的 changelog 则需要使用这条命令：
 
-之后功能开发完后，修改 version 后，就可以通过 npm run changelog 自动生成该版本相关的 change log。
+```sh
+conventional-changelog -p angular -i CHANGELOG.md -s -r 0
+```
 
-__注意__ 这个命令是生成最新一个版本的 changelog (以 tag 区分版本)
+-r 表示生成 changelog 所需要使用的 release 版本数量，默认值为 1，全部则是 0。如果是已有项目引入 conventional-changelog，需要先生成之前的信息；之后功能开发完后，修改 version 后，就可以通过 npm run changelog 自动生成该版本相关的 change log。
 
-如果之前没有生成 changelog，可以通过 `conventional-changelog -p angular -i CHANGELOG.md -s -r 0` 生成历史以来的所有 change log。这个通常是针对已有项目需要引入 changelog 才需要一次生成。通常应该在项目一开始就进入，这样可以将 change log 和版本对应起来。
+官方推荐的 workflow：
+
++ Make changes
++ Commit those changes
++ Make sure Travis turns green
++ Bump version in package.json
++ conventionalChangelog
++ Commit package.json and CHANGELOG.md files
++ Tag
++ Push
+
+__注意__ 这边要求先提交 CHANGELOG.md，之后再打 tag，这样才能确保 CHANGELOG 和 版本是对应 (因为 conventionalChangelog 是生成从最新 tag 以来的信息，如果先打 tag，会导致没有对应的 chagnelog 内容。不过这样就得确保一旦 tag 删除后重新建，需要再重新生成 changelog)
+
+## standard-version
+
+这个工具也可以用于生成 changelog，而且还集成了一些其他功能。通常情况线下，我们会在 master 分支进行如下的版本发布操作：
+
+1. git pull origin master
+2. 根据 pacakage.json 中的 version 更新版本号，更新 changelog
+3. git add -A, 然后 git commit
+4. git tag 打版本操作
+5. push 版本 tag 和 master 分支到仓库
+
+其中2，3，4则是 standard-version 工具会自动完成的工作，配合本地的 shell 脚本，则可以自动完成一系列版本发布的工作了。
+
+而 conventional-changelog 只完成上面的步骤 2 (其中 version 更新，还需要手动操作)
+
+standard-version 把一些操作都集成起来了，对于新项目建议使用这个工具 (当然需要自定义一些参数，比如 tag 前缀等)。如果是已有项目，还是建议使用 conventional-changelog
+
+
