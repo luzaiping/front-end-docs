@@ -102,7 +102,7 @@ __注意__ 要求校验工具事先安装并配置在 package.json 里的 depend
 
 ## commitizen, cz-conventional-changelog
 
-这两个工具是用于规范化 git commit message。在没有规范的情况下，开发人员的 commit message是常常随意的，这就导致 commit message 显得很无用。可是当你在做git log 、code review、编写changelog等情况时，良好的 commit 规范就显的尤为重要。
+这两个工具是用于规范化 git commit message。在没有规范的情况下，开发人员的 commit message常常是随意的，这就导致 commit message 显得很无用。可是当你在做git log 、code review、编写changelog等情况时，良好的 commit 规范就显的尤为重要。
 
 通过使用这两个工具，可以交互式地选择和填写 commit message, 这样就可以统一整个项目的 commit message。
 
@@ -135,7 +135,7 @@ npm i -D cz-conventional-changelog
 上面的安装和配置也可以通过下面命令进行简化：
 
 ```sh
-commitizen init cz-conventional-changelog -D
+npx commitizen init cz-conventional-changelog -D
 ```
 
 安装和配置完之后，建议在 npm scripts 中添加下面 script 用于运行 git cz
@@ -173,14 +173,36 @@ module.exports = {
 ```json
 {
   "husky": {
-  "hooks": {
-    "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-    "pre-commit": "lint-staged"
+    "hooks": {
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
+      "pre-commit": "lint-staged"
+    }
   }
 }
 ```
 
 至此，提交代码时，commit-message 就必须遵循要求的格式才能提交成功 (这边用的是 cz-conventional-changelog 这个 adapter)。由于 commitizen 为编写 commit message 提供了便利性，因此建议使用 `npm run commit` 代替 `git commit`
 
+## conventional-changelog-cli
 
+这个工具可以根据 commit message 自动生成 changelog。commit message 可以是不同规范。
 
+```sh
+npm i -D conventional-changelog-cli
+```
+
+首先安装 conventional-changelog-cli，之后添加 npm script
+
+```json
+{
+  "scripts": {
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s"
+  }
+}
+```
+
+之后功能开发完后，修改 version 后，就可以通过 npm run changelog 自动生成该版本相关的 change log。
+
+__注意__ 这个命令是生成最新一个版本的 changelog (以 tag 区分版本)
+
+如果之前没有生成 changelog，可以通过 `conventional-changelog -p angular -i CHANGELOG.md -s -r 0` 生成历史以来的所有 change log。这个通常是针对已有项目需要引入 changelog 才需要一次生成。通常应该在项目一开始就进入，这样可以将 change log 和版本对应起来。
