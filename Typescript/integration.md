@@ -10,6 +10,9 @@ react & typescript & webpack & babel & eslint & prettier & redux & jest & enzyme
 + @types/react @types/react-dom - react declaration file
 + typescript ts-loader source-map-loader - typescript 以及 集成 webpack 所需的 loader
 
+其他参考文档：
+[React with Typescript and Webpack](https://www.pluralsight.com/guides/react-typescript-webpack)
+
 ### 集成 eslint
 
 安装相关 npm 包： yarn add eslint @typescript-eslint/parser @typescript-eslint/eslint-plugin --dev
