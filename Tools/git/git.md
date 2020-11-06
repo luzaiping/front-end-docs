@@ -419,3 +419,12 @@ git rm -r --cached some-directory
 git commit -m 'Remove the now ignored directory "some-directory"'
 git push origin master
 ```
+
+### 恢复 stash apply 
+
+误使用了 `git stash pop`，导致 conflict，可以按下面操作恢复回去：
+
+```sh
+git reset HEAD . // 先还原到最新版本
+git stash // 将 stash apply 的文件再 stash 回去
+```
