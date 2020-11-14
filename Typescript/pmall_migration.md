@@ -355,3 +355,53 @@ export type AppThunk<ReturnType = void> = ThunkAction<
 其中 ThunkAction 是 'redux-thunk' 导出的类型定义，这边需要使用到 RootState，因此暂时也将 AppThunk 写在了 rootReducer 文件中。
 
 ### 对 react-redux 进行类型定义
+
+这个分为两部分，一种是使用 hooks，一种是使用传统的 connector 方式
+
+#### 使用 hooks
+
+如果是使用 hooks，只需要对 useSelector 进行类型定义：
+
+```ts
+const isOn = useSelector((state: RootState) => state.isOn)
+```
+
+这边 useSelector 的入参函数，需要接收一个 RootState 类型，这个 RootState 就是前面在 rootReducer 通过 ReturnType 得到。
+
+这种写法，每次使用 useSelector 都需要重复写一遍 RootState，为了减少这个重复代码， react-redux 提供了 TypedUseSelectorHook 工具类型：
+
+```ts
+// reducer.ts
+export const useTypedSelector: TypedUseSelectorHook<RootState> = useSelector;
+```
+
+这样就可以直接使用 useTypedSelector, 无需再引入 RootState
+
+```ts
+const isOn = useTypedSelector(state => state.isOn);
+```
+
+__注意__ useDispatch 无需进行类型处理
+
+#### 使用 connector 方式
+
+这种方式，应用类型定义要比较复杂一些，需要分别对 mapStateToProps，mapDispatchToProps 进行定义：
+
+```ts
+const mapStateToProps = (state: RootState): { data: HomeState } => ({
+  data: state.home
+});
+const mapDispatchToProps = (dispatch: Dispatch): ActionCreatorsMapObject =>
+  bindActionCreators(homeAction, dispatch);
+
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+export type HomeProps = ConnectedProps<typeof connector>;
+
+export default connector(Home);
+```
+有了 mapStateToProps 和 mapDispatchToProps，就可以得到对应的 connector，有了 connector 就可以使用 react-redux 提供的 ConnectedProps 工具类型得到 最终要传给 component 的 Props 类型
+
+注意：这边忽略了 connect 函数的第三个参数 ownProps (这个在实际应用中用的比较少，这边就没有演示)
+
+__注意__ 从上面的类型定义应用来看，使用 hooks 的方式要简单得多，因此建议优先使用 hooks 方式。
