@@ -188,3 +188,170 @@ alias: {
 ##### useMemo
 
 `React.useMemo<T>`，这边 T 的类型是 useMemo 写法中 factory function 的返回值。通常不需要使用 泛型，ts 会自动推动出类型。
+
+### Redux 集成
+
+#### 先对各个 slice state 进行 typing
+
+slice state 只是简单的结构定义，不依赖其他内容，因此是 typing 的很好入口点。由于 store state 通常会存储 API response 内容，因此正常需要引入 response 类型
+
+```ts
+export interface ProductState {
+  detail: ProductDetailResponse & { pictureIndex?: number };
+  number: number;
+  purchaseList: PurchaseProduct[];
+  bannerTab: number;
+}
+```
+
+#### 定义 slice state 所涉及的 action type 常量, 以及所有 Action 的联合
+
+```ts
+export const GET_PRODUCT_DETAIL = 'GET_PRODUCT_DETAIL';
+export const SET_PURCHASE_NUMBER = 'SET_PURCHASE_NUMBER';
+export const ADD_PURCHASE_LIST = 'ADD_PURCHASE_LIST';
+export const SET_BANNER_TAB = 'SET_BANNER_TAB';
+```
+
+有了 action type 常量之后，就可以定义 action type 对象类型：
+
+```ts
+interface GetProductDetailAction {
+  type: typeof GET_PRODUCT_DETAIL;
+  payload: {
+    data: ProductDetailResponse & { pictureIndex: number };
+    switchSku: boolean;
+  };
+}
+
+interface SetPurchaseNumberAction {
+  type: typeof SET_PURCHASE_NUMBER;
+  payload: { number: number };
+}
+
+interface AddPurchaseListAction {
+  type: typeof ADD_PURCHASE_LIST;
+  payload: ProductDetailResponse;
+}
+
+interface SetBannerTabAction {
+  type: typeof SET_BANNER_TAB;
+  payload: number;
+}
+```
+
+有了各个具体 Action type 类型，就可以定义总的 Action
+
+```ts
+export type ProductAction =
+  | GetProductDetailAction
+  | SetPurchaseNumberAction
+  | AddPurchaseListAction
+  | SetBannerTabAction
+```
+
+ProductAction 是一个联合类型，该类型会在对应的 productReducer 中使用；也可能会在 ActionCreator 中使用
+
+#### 对 ActionCreator 进行类型定义
+
+ActionCreator 是一个函数，正常一个 Action type 对应一个 ActionCreator，该函数接收 payload 入参，返回一个总的 Action 对象
+
+```ts
+function addPurchaseList(purchasedProudct: PurchaseProduct): ProductAction {
+  return {
+    type: ADD_PURCHASE_LIST,
+    payload: purchasedProudct
+  };
+}
+```
+
+由于实际应用中使用了 createAction 这个 util 方法来减少创建 ActionCreator 样本代码，因此上面的 ActionCreator 会简化成下面的代码：
+
+```ts
+const addPurchaseList = createAction(ADD_PURCHASE_LIST, PAYLOAD);
+```
+
+下面这种写法，在调用 addPurchaseList() 时无法对入参进行类型检查，不过 payload 的值最终传入 redcuer 时会被类型检查，因为 reducer 会检查 action 类型
+
+#### 对 reducer 进行类型定义
+
+首先需要对 initialState 进行类型定义
+
+```ts
+const initialState: ProductState = {
+  ...
+};
+```
+
+之后对 reducer 函数进行类型定义：
+
+```ts
+export default (state = initialState, action: ProductAction): ProductState => {
+  switch(action.type) {
+    case GET_PRODUCT_DETAIL: {
+      ...
+    }
+    case SET_PURCHASE_NUMBER: {
+
+    }
+    case ADD_PURCHASE_LIST: {
+
+    }
+    default:
+      return state;
+  }
+}
+```
+
+到了这步，一个 slice state 所涉及的 reducer，actionCreator，action type 都完成了类型定义。
+
+#### 之后对整个 redux reducer 进行定义
+
+这步必须在每一个 slice state 的 reducer 都定义完了之后才能实施
+
+```ts
+const rootReducer = combineReducers({
+  ....
+})
+
+export type RootState = ReturnType<typeof rootReducer>;
+```
+
+这边 rootReducer 的代码还是不变，唯一要增加的是通过 ReturnType 得到 RootState。这个 RootState 需要在 react-redux 中使用，比如 useSelector 和 connector 组件
+
+#### 对 createStore 进行类型定义
+
+```ts
+export default function configureStore(initialState = {}): Store {
+  const composeFn = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+  const enhancers = composeFn(applyMiddleware(thunk));
+  return createStore(rootReducer, initialState, enhancers);
+}
+```
+
+#### 对 Thunk middleware 进行类型定义
+
+使用 Thunk, ActionCreator 的写法跟普通的 ActionCreator 不同，因此需要对 thunk 的 ActionCreator 进行类型定义：
+
+```ts
+export const getProductDetail = (payload: DetailPayload): AppThunk => async (
+  dispatch
+): Promise<void> => {
+  ...
+}
+```
+
+thunk ActionCreator 是一个高阶函数，需要分别对函数返回值进行类型定义，第一层函数的返回值是一个 AppThunk，第二层函数的返回值是一个 Promise (通常会在这边使用 async fn)。 AppThunk 是下面的定义：
+
+```ts
+export type AppThunk<ReturnType = void> = ThunkAction<
+  ReturnType,
+  RootState,
+  unknown,
+  Action<string>
+>;
+```
+
+其中 ThunkAction 是 'redux-thunk' 导出的类型定义，这边需要使用到 RootState，因此暂时也将 AppThunk 写在了 rootReducer 文件中。
+
+### 对 react-redux 进行类型定义
