@@ -428,3 +428,18 @@ git push origin master
 git reset HEAD . // 先还原到最新版本
 git stash // 将 stash apply 的文件再 stash 回去
 ```
+
+### cherry-pick
+
+先 checkout 到代码最终要合并进去的分支。然后查看需要 cherry-pick 的 commit id：
+
++ git cherry-pick <commit id>:单独合并一个提交
++ git cherry-pick -x <commit id>：同上，不同点：保留原提交者信息。
++ Git 从1.7.2版本开始支持批量cherry-pick，就是一次可以cherry-pick一个区间的commit。
+
++ git cherry-pick <start-commit-id>..<end-commit-id>
++ git cherry-pick <start-commit-id>^..<end-commit-id>
+
+前者表示把<start-commit-id>到<end-commit-id>之间(左开右闭，不包含start-commit-id)的提交cherry-pick到当前分支；
+后者有"^"标志的表示把<start-commit-id>到<end-commit-id>之间(闭区间，包含start-commit-id)的提交cherry-pick到当前分支。
+其中，<start-commit-id>到<end-commit-id>只需要commit-id的前6位即可，并且<start-commit-id>在时间上必须早于<end-co
