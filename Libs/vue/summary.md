@@ -27,17 +27,14 @@ summary
 ## event
 
 Vue 提供的事件功能要比 React 更丰富，写法也更多：
-1. 支持在指令的属性值位置上自己写 js statement `<div @click="counter + 1">`, 这个跟传统的 html 内嵌 js 写法是一样
-1. 跟 React 一样，属性值也可以是事件函数名称；不同的是，如果要传递参数，Vue 可以直接将参数写到函数名称后面；而React需要在调用语句外面再嵌套一层函数
-1. Vue 支持 modifiers 特性，比如 `prevent, stop, capture, passive, once`，只要将 modifiers 紧跟在 argument 后面即可。另外 modifier 也可以组合，具体可以参考官方文档。
-1. modifiers 还可以是键盘按键、鼠标方向键、系统按键 (ctrl, shift, alt)
+1. React绑定的事件属性值必须是一个函数；而 Vue 即可以是函数，也可以是语句，尤其是语句这种写法，方便直接将参数写在属性值的地方，而 React 如果要传参数，必须在外面再包含一层函数；
+1. Vue 支持 modifiers 特性，比如 `prevent, stop, capture, passive, once`，只要将 modifiers 紧跟在 argument 后面即可。另外 modifier 也可以组合。另外 modifiers 还可以是键盘按键、鼠标方向键、系统按键 (ctrl, shift, alt)
 
-下面针对第二点举个列子
+下面针对第一点举个列子
 
 ```html
-<!-- 传递参数时，直接写成语句形式，参数紧跟函数名称在后面
-  这种形式，如果需要在事件处理函数中使用 event，需要以 $event
-  特殊变量作为参数传入
+<!-- 属性值直接写成语句形式，如果需要传参数，就像正常语句写法即可
+    如果需要在事件处理函数中使用 event，需要以 $event 特殊变量作为参数传入
  -->
 <div @click.prevent="say('hi', $event)">  
 ```
