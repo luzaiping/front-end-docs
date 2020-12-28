@@ -45,3 +45,80 @@ Vue 提供的事件功能要比 React 更丰富，写法也更多：
 <div onClick={() => { say('hi')}}>
 ```
 
+## form / v-model
+
+`v-model` 是专门用于处理表单元素，对于各种类型的 form 元素，比如 input，checkbox， radio，select 都适用，它实现了数据双向绑定功能。
+
+## 组件注册
+
+### 全局注册
+
+全局注册要使用 Vue.component:
+
+`Vue.component('component-name', config)`, 组件名称建议都采用 `kebab-case` 格式(小写加'-'的格式)，不推荐使用 camelCase 驼峰格式。
+
+全局注册适用于注册基础组件，这样就无需在每个组件中再次引入组件, 当然这个注册步骤要在 Vue instance 创建之前。
+
+### 局部注册
+
+应用中大部分组件都是采用局部注册的方式，这个使用方法跟 React 类似，通过 ES Module 的方式导入组件；不同的是: 导入组件后，Vue 还需要通过 components 注册组件，而 React 是可以直接使用
+
+```js
+import TodoItem from 'someplace/todoItem';
+import TodoHeader from 'someplace/todoHeader';
+
+var app = new Vue({
+  el: "#app",
+  components: {
+    //本地注册组件，需要在使用者组件中通过 components 引用
+    "todo-item": TodoItem,
+    "todo-header": TodoHeader
+  }
+});
+```
+
+## props
+
+同组件名称一样，prop name 也是建议采用 `kebab-case`。
+
+### Prop Types
+
+props 的值有两种形式：
+
+1. 数组，比如 `props: ['title', 'likes', 'isPublished', 'commentIds', 'author']`, 这种形式只定义了要接收哪些 props 
+2. 对象，`props: { title: String, likes: Number, isPublished: Boolean, commentIds: Array, author: Object, callback: Function, contactsPromise: Promise }`, 这种形式除了指定要接收props 的 name，同时指定每个 name 的类型
+
+### 校验
+
+针对props值是对象的情形，可以进一步扩展，从而支持对 prop 的校验 (类似于 React prop-types 功能):
+
+```js
+Vue.component('my-component', {
+    props: {
+        propA: Number, // 只指定了 prop 的类型, 类似于 PropTypes.number
+        propB: [String, Number], // 支持多种类型， 类似于 PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+        propC: { // 这个类似于 PropTypes.string.isRequired, Vue 需要通过 object 形式来表示
+            type: string,
+            required: true
+        },
+        propD: { // 这个是 React propTypes 和 defaultProps 的组合，指定了类型又指定了默认值
+            type: Number,
+            default: 100
+        },
+        propE: { // 如果是要对 Object 或者 Array 指定默认值，必须使用 factory function
+            type: Object,
+            default: function() {
+                return { message: 'Hello' };
+            }
+        },
+        propF: { // 支持自定义校验函数，这种方式应该是最强大，可以整个应用定义通用的校验函数，这边再引用对应的校验函数
+            validator: function(value) {
+                // The value must match one of these strings
+                return ['success', 'warning', 'danger'].indexOf(value) !== -1
+            }
+        }
+    }
+})
+```
+
+从上面的内容来看， Vue 提供的 props 校验功能要比 React prop-types 强大得多，不光支持定义 prop type 和 是否必须，还支持定义默认值，；另外还支持自定义校验函数。唯一有点不好的地方就是语法相对复杂点，需要通过实践多加练习掌握。
