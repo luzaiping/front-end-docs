@@ -442,4 +442,35 @@ git stash // 将 stash apply 的文件再 stash 回去
 
 前者表示把<start-commit-id>到<end-commit-id>之间(左开右闭，不包含start-commit-id)的提交cherry-pick到当前分支；
 后者有"^"标志的表示把<start-commit-id>到<end-commit-id>之间(闭区间，包含start-commit-id)的提交cherry-pick到当前分支。
-其中，<start-commit-id>到<end-commit-id>只需要commit-id的前6位即可，并且<start-commit-id>在时间上必须早于<end-co
+其中，<start-commit-id>到<end-commit-id>只需要commit-id的前6位即可，并且<start-commit-id>在时间上必须早于<end-commit-id>
+
+### git pull --rebase
+
+```sh
+git stash
+git pull --rebase
+git push
+git stash pop
+```
+
+`git pull --rebase` 可能会出现 冲突，可以解决完冲突后：
+
+```sh
+git add conflictFile
+git rebase --continue
+git push
+```
+
+当然也可以直接放弃
+
+```sh
+
+git rebase --abort
+```
+
+### 绕过校验
+
+```sh
+git commit --no-verify -m "commit message" 
+```
+
