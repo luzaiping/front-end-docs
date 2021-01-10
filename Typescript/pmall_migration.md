@@ -268,10 +268,10 @@ function addPurchaseList(purchasedProudct: PurchaseProduct): ProductAction {
 由于实际应用中使用了 createAction 这个 util 方法来减少创建 ActionCreator 样本代码，因此上面的 ActionCreator 会简化成下面的代码：
 
 ```ts
-const addPurchaseList = createAction(ADD_PURCHASE_LIST, PAYLOAD);
+const addPurchaseList = createAction<PurchaseProduct>(ADD_PURCHASE_LIST, PAYLOAD);
 ```
 
-下面这种写法，在调用 addPurchaseList() 时无法对入参进行类型检查，不过 payload 的值最终传入 redcuer 时会被类型检查，因为 reducer 会检查 action 类型
+createAction支持泛型对 PAYLOAD 进行类型定义，在调用 addPurchaseList() 时会对入参进行检查
 
 #### 对 reducer 进行类型定义
 

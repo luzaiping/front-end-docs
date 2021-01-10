@@ -101,7 +101,7 @@ __注意__ 如果要用于 css modules, 需要引入 `typings-for-css-modules-lo
 + jest, enzyme, @types/enzyme
 + ts-jest: 这个可以解决 typescript 无法识别 it 和 describe 等 jest globals
 
-之后编写 *.spec.ts 文件，运行 yarn test. 会报无法识别 less 或者 css 文件，这个需要 jest 对 css/image 等 assets 进行 mock：
+之后编写 `*.spec.ts` 文件，运行 yarn test. 会报无法识别 less 或者 css 文件，这个需要 jest 对 css/image 等 assets 进行 mock：
 
 ```js
 moduleNameMapper: {
