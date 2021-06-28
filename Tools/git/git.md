@@ -288,8 +288,8 @@ git reset HEAD <filename>
 
 ``` Bash
 git reset --hard <expected_commit_id>
+
 git reset --hard HEAD^
-git reset --hard HEAD^^
 
 git reset --soft HEAD^  // 建议用 --soft 这样reset后，内容还在
 ```
@@ -474,3 +474,12 @@ git rebase --abort
 git commit --no-verify -m "commit message" 
 ```
 
+### .gitignore
+
+#### 将已经push的文件重新加入到 .gitignore
+
+```sh
+git rm --cached filename // 将指定文件从 cache 中删除
+git add filename // 重新加入
+git commit -m 'message'
+```
