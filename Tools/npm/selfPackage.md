@@ -60,7 +60,7 @@
 
 * node_modules
 * coverage
-* *.log
+* `*.log`
 * lib
 * dist
 * es
