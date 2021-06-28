@@ -3,18 +3,18 @@ vuex
 
 ## state
 
-获取 state 状态值的方式：
+组件获取 state 状态值的方式：
 
-1. store.state.count: 要求 import store
-1. this.$store.state.count 要求 Vue.use(Vuex), 同时将 store 作为 new Vue(option) 中 option 的一部分传入
-1. mapState
+1. store.state.count: 要求显式 import store, 不推荐使用
+1. this.$store.state.count:  要求 Vue.use(Vuex), 同时将 store 作为 new Vue(option) 中 option 的一部分传入，这个比较适合只需获取单个 state 值
+1. mapState: 适合需要使用多个 state 值的情形，将 mapState helper 获取到的值作为 computed 的一部分
 
 ```js
 export default {
   computed: {
-    count: store.state.count,  // 直接使用 store 访问，需要先 import store，不推荐
-    count2: this.$store.state.count, // 如果只有少量这种数据，优先选择这种
-    ...mapState({ // 当需要获取多个 state 中的数据，建议使用这种方式，通过 ... 将 state 数据跟其他 computed 合并到一起
+    count: store.state.count,  // 方式1 直接使用 store 访问，需要先 import store，不推荐
+    count2: this.$store.state.count, // 方式2 如果只有少量这种数据，优先选择这种
+    ...mapState({ // 方式3 当需要获取多个 state 中的数据，建议使用这种方式，通过 ... 将 state 数据跟其他 computed 合并到一起
       count: state => state.count,
       countAlias: 'count',
       countPlusLocalState(state) {
