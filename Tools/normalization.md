@@ -12,9 +12,9 @@
 
 ## 配置 .editorconfig
 
-由于不同编辑器, 所使用的代码风格会有差异，比如缩进格式，有的编辑器默认是使用 空格，有的是使用 tab；这样就会造成同一份文件，在不同编辑器使用上出现问题。
+由于不同编辑器, 所使用的代码风格会有差异，比如缩进格式，有的编辑器默认是使用 `空格`，有的是使用 `tab`；这样就会造成同一份文件，在不同编辑器使用上出现问题。
 
-而 .editorconfig 文件就是用于统一不同编辑器的差异，规范化一致的代码风格。这个工具的功能跟 prettier 有重叠，而且能配置的信息也没有 prettier 丰富。不过由于它的轻便和易用，另外有些项目并未必会采用 prettier；因此实际应用中，建议跟 prettier 有重叠的配置统一由 .editorconfig 配置。下面是一份常见的配置：
+.editorconfig 文件就是用于统一不同编辑器的差异，规范化一致的代码风格。这个工具的功能跟 prettier 有重叠，能配置的信息也没有 prettier 多。不过由于它的轻便和易用，另外有些项目未必会采用 prettier；因此实际应用中，建议跟 prettier 有重叠的配置统一由 .editorconfig 配置。下面是一份常见的配置：
 
 ```
 # 下面这5个配置项跟 prettier 配置是重复，建议定义在这边
@@ -39,7 +39,7 @@ trim_trailing_whitespace = true
 
 ## 配置 eslint
 
-eslint 是用于校验 js, ts 语法的校验工具。建议使用 'eslint:recommended','airbnb' 这两个 config。具体配置就不展开
+eslint 是用于校验 js, ts 语法的校验工具。如果用 React，建议使用 'eslint:recommended','airbnb' 这两个 config。具体配置就不展开
 
 ## 集成 prettier
 
@@ -62,7 +62,7 @@ __注意__ eslint config 配置有顺序要求，后面的配置会覆盖前面�
 
 ## 集成 husky
 
-配置完 .editorconfig, eslint 和 prettier 后，这个项目的代码语法和风格就能统一了。但是如果违反了规则，虽然校验工具会给出警告或者错误，但是并不影响代码提交，即还是可以将不符合规范的代码提交到 git 仓库。为了解决这个问题，需要引入 husky，这个工具可以定义 git hook 任务。要限制提交不符合规范的代码，需要配置 `pre-commit` 这个 git hook, 在 package.json 中添加如下配置：
+配置完 .editorconfig, eslint 和 prettier 后，项目的语法和代码风格就能统一了。但是如果违反了规则，虽然校验工具会给出警告或者错误，但是并不影响代码提交，即还是可以将不符合规范的代码提交到 git 仓库。为了解决这个问题，需要引入 husky，这个工具可以定义 git hook 任务。要限制提交不符合规范的代码，需要配置 `pre-commit` 这个 git hook, 在 package.json 中添加如下配置：
 
 ```json
 "husky": {
@@ -84,7 +84,7 @@ __注意__ 如果是在 vscode 的 git 面板里提交代码，即非命令行�
 
 ## 集成 lint-staged
 
-上面的 husky pre-commit 定义的任务是 `npm run eslint`, 这个任务会在每次提交代码时都会运行一遍。这会导致不必要的校验工作，尤其是之前代码都已经通过 eslint 校验，后面新增或者修改的提交还需要再重新校验一遍，就显得多余。另外项目一旦变大，每次都完整校验一遍，效率上也慢很多。
+上面的 husky pre-commit 定义的任务是 `npm run eslint`, 这个任务会在每次提交代码时对所有代码都执行 eslint 校验。这会导致不必要的校验工作，尤其是之前代码都已经通过 eslint 校验，再校验一次就显得多余。另外项目一旦变大，每次都完整校验一遍，效率上也慢很多。
 
 lint-staged 就是用于解决这个问题，它只会对本次要提交的代码进行校验。
 
@@ -102,7 +102,7 @@ __注意__ 要求校验工具事先安装并配置在 package.json 里的 depend
 
 ## commitizen, cz-conventional-changelog
 
-这两个工具是用于规范化 git commit message。在没有规范的情况下，开发人员的 commit message常常是随意的，这就导致 commit message 显得很无用。可是当你在做git log 、code review、编写changelog等情况时，良好的 commit 规范就显的尤为重要。
+这两个工具是用于规范化 git commit message。在没有规范的情况下，开发人员的 commit message 通常是比较随意的，这就导致 commit message 不规范。当我们做 git log 、code review、编写 changelog 等情况时，良好的 commit message 就显的尤为重要。
 
 通过使用这两个工具，可以交互式地选择和填写 commit message, 这样就可以统一整个项目的 commit message。
 
@@ -111,9 +111,6 @@ __注意__ 要求校验工具事先安装并配置在 package.json 里的 depend
 ```sh
 npm i -D commitizen
 ```
-
-这样就安装好 commitizen。
-
 ### 安装 cz-conventional-changelong
 
 commitizen 支持不同适配器的扩展，不同适配器可以满足不同的构建需求的。这边使用 cz-conventional-changelog，这个采用了 Angular 团队使用的 commit message 规范。
@@ -138,7 +135,7 @@ npm i -D cz-conventional-changelog
 npx commitizen init cz-conventional-changelog -D
 ```
 
-安装和配置完之后，建议在 npm scripts 中添加下面 script 用于运行 git cz
+安装和配置完之后，建议在 npm scripts 中添加 script 用于运行 git cz
 
 ```json
 {
@@ -148,7 +145,7 @@ npx commitizen init cz-conventional-changelog -D
 }
 ```
 
-这样后续就可以通过 `npm run git-cz` 来代替 `git commit`，运行后就会以交互性方式选择和填写完成 commit message 所需的步骤。
+这样后续就可以通过 `npm run commit` 来代替 `git commit`，运行后就会以交互性方式完成 commit message 的编写。
 
 ## @commitlint/cli, @commitlint/config-conventional
 
@@ -181,7 +178,7 @@ module.exports = {
 }
 ```
 
-至此，提交代码时，commit-message 就必须遵循要求的格式才能提交成功 (这边用的是 cz-conventional-changelog 这个 adapter)。由于 commitizen 为编写 commit message 提供了便利性，因此建议使用 `npm run commit` 代替 `git commit`
+之后提交代码时，commit-message 只有遵循要求的格式才能提交成功 (这边用的是 cz-conventional-changelog 这个 adapter)。
 
 ## conventional-changelog-cli
 
@@ -231,7 +228,7 @@ __注意__ 这边要求先提交 CHANGELOG.md，之后再打 tag，这样才能�
 4. git tag 打版本操作
 5. push 版本 tag 和 master 分支到仓库
 
-其中2，3，4则是 standard-version 工具会自动完成的工作，配合本地的 shell 脚本，则可以自动完成一系列版本发布的工作了。
+其中2，3，4 则是 standard-version 工具会自动完成的工作，配合本地的 shell 脚本，则可以自动完成一系列版本发布的工作了。
 
 而 conventional-changelog 只完成上面的步骤 2 (其中 version 更新，还需要手动操作)
 
