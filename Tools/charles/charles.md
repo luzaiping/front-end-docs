@@ -19,6 +19,8 @@ __注意__ 这个安装过程容易配置错的一个地方是证书安装完后
 
 ## 配置代理抓包
 
+### iphone
+
 这个主要是用于抓包手机数据。这边以 iphone 为例：
 
 1. 点开手机里的 无线局域网，选择跟 电脑 连接的同一个 wifi (必须是同一个 wifi，否则无法代理)
@@ -30,3 +32,8 @@ __注意__ 这个安装过程容易配置错的一个地方是证书安装完后
 
 经过上面一通配置之后，通过手机访问 https 网站，就能在 charles 看到抓包到数据，并且 https 数据也解密成功。
 
+
+### android 模拟器
+
+1. 设置手机网络代理，步骤跟 iphone 类似 (Settings -> Network & internet -> WiFi -> 选中连接的WiFi -> Advanced options -> Proxy -> Manual -> 填写Proxy IP（本机）及端口 -> Save)
+1. 在Android模拟器中打开 `http://charlesproxy.com/getssl`, 下载安装证书
