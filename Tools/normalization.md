@@ -52,7 +52,7 @@ prettier 是对代码风格的校验工具，而 elsint 除了语法校验，也
 
 ```js
 module.exports = {
-  extends: ['eslint:recommended','airbnb', 'plugin:prettier/recommended', 'prettier/react']
+  extends: ['eslint:recommended','airbnb', 'plugin:prettier/recommended', 'prettier/react'] // 推荐只配置 plugin:prettier/recommended 就好
 }
 ```
 
@@ -61,6 +61,8 @@ module.exports = {
 __注意__ eslint config 配置有顺序要求，后面的配置会覆盖前面的配置，因此上面这四个的配置顺序不能随意打乱。
 
 ## 集成 husky
+
+husky 是一个 Git hooks 工具，通过触发对应的 hooks，执行自定义的脚本。
 
 配置完 .editorconfig, eslint 和 prettier 后，项目的语法和代码风格就能统一了。但是如果违反了规则，虽然校验工具会给出警告或者错误，但是并不影响代码提交，即还是可以将不符合规范的代码提交到 git 仓库。为了解决这个问题，需要引入 husky，这个工具可以定义 git hook 任务。要限制提交不符合规范的代码，需要配置 `pre-commit` 这个 git hook, 在 package.json 中添加如下配置：
 
@@ -82,38 +84,69 @@ git commit -m 'msg'
 
 __注意__ 如果是在 vscode 的 git 面板里提交代码，即非命令行形式，默认是看不到 husky log，如果校验失败，会弹窗显示，可以点弹窗里的链接查看具体错误信息。
 
+### husky 6.0
+
+#### 推荐的安装方法
+
+```sh
+npx husky-init && npm install  # npm
+npx husky-init && yarn # Yarn 1
+yarn dlx huksy-init --yarn2 && yarn # Yarn 2
+```
+
+上面的命令会 安装 husky，修改 package.json，创建一个 pre-commit hook 例子。
+
+之后通过 `npx husky add` 添加 hook，`npx huksy add <file> [cmd]` 比如
+
+```sh
+npx husky add .husky/pre-commit "npm test" # 添加一个 pre-commit hook, 这个 hook 会执行 npm test
+npx husky add .husky/commit-msg 'npx --no-install commitlint --edit "$1"' # 添加一个 commit-msg hook，这个 hook 会执行 commitlint，如果执行失败，就手动添加 commit-msg 文件
+```
+
+#### 手动安装
+
+```sh
+npm install husky --save-dev # 1. install husky
+npx husky install # 2. enable git hooks
+npm set-script prepare "huksy install" # 3. 每次 npm install 之后，自动 enable git hooks，建议用这个，可以代替上面第二条
+```
+第3条执行完后，package.json 会包含如下内容：
+
+```json
+{
+  "scripts": {
+    "prepare": "husky install"
+  }
+}
+```
+
 ## 集成 lint-staged
 
-上面的 husky pre-commit 定义的任务是 `npm run eslint`, 这个任务会在每次提交代码时对所有代码都执行 eslint 校验。这会导致不必要的校验工作，尤其是之前代码都已经通过 eslint 校验，再校验一次就显得多余。另外项目一旦变大，每次都完整校验一遍，效率上也慢很多。
+这是一个检测文件的插件，会检测 `暂存区` 的文件，并且只对满足过滤条件文件执行对应的命令/脚本。上面的 husky pre-commit 定义的任务是 `npm run eslint`, 这个任务会在每次提交代码时对所有代码都执行 eslint 校验。这会导致不必要的校验，尤其是之前代码再校验一次就显得多余。一旦项目变大，每次都完整校验一遍，速度会慢很多。
 
 lint-staged 就是用于解决这个问题，它只会对本次要提交的代码进行校验。
 
 配置 lint-staged 最简单的方法就是实用官方推荐的命令：
 
 ```sh
-npx mrm lint-staged
+npx mrm lint-staged # 之前的安装方法
+npx mrm@2 lint-staged # 最新的安装方法，支持 husky 6.0。使用该命令就能完成 husky 和 lint-staged 的安装和基础配置了
+
 ```
 
 这个命令会根据当前 package.json 里已安装的校验工具(比如 eslint 和 prettier)，自动安装和配置 husky 和 lint-staged。
 
 __注意__ 要求校验工具事先安装并配置在 package.json 里的 dependencies (经过测试 devDependencies 也是可以)
 
-到这一步就实现了对代码风格和语法规范化的流程。
-
 ## commitizen, cz-conventional-changelog
 
-这两个工具是用于规范化 git commit message。在没有规范的情况下，开发人员的 commit message 通常是比较随意的，这就导致 commit message 不规范。当我们做 git log 、code review、编写 changelog 等情况时，良好的 commit message 就显的尤为重要。
+commitizen 用于规范化 git commit message。在没有规范的情况下，开发人员的 commit message 通常会比较随意，导致 commit message 不规范。当进行 git log 、code review、changelog 时，良好的 commit message 是很有帮助。
 
-通过使用这两个工具，可以交互式地选择和填写 commit message, 这样就可以统一整个项目的 commit message。
+通过使用这个工具，可以通过交互式的方式选择选项，填写内容来完成规范化的 commit message。
 
-### 安装 commitizen
+### cz-conventional-changelong
 
-```sh
-npm i -D commitizen
-```
-### 安装 cz-conventional-changelong
-
-commitizen 支持不同适配器的扩展，不同适配器可以满足不同的构建需求的。这边使用 cz-conventional-changelog，这个采用了 Angular 团队使用的 commit message 规范。
+commitizen 支持不同适配器的扩展，不同适配器可以满足不同的需求。这边使用 cz-conventional-changelog，这个适配器采用了 Angular 团队使用的 commit message 规范。
 
 ```sh
 npm i -D cz-conventional-changelog
@@ -129,10 +162,16 @@ npm i -D cz-conventional-changelog
 }
 ```
 
-上面的安装和配置也可以通过下面命令进行简化：
+或者添加一个 `.czrc` 文件，内容如下：
+
+```
+"path": "cz-conventional-changelog"
+```
+
+这2个工具的的安装和配置也可以通过下面这个命令来完成：
 
 ```sh
-npx commitizen init cz-conventional-changelog -D
+npx commitizen init cz-conventional-changelog -D -E  # 推荐用这个来完成
 ```
 
 安装和配置完之后，建议在 npm scripts 中添加 script 用于运行 git cz
@@ -140,24 +179,24 @@ npx commitizen init cz-conventional-changelog -D
 ```json
 {
   "scripts": {
-    "commit": "git-cz"
+    "cm": "git-cz"
   }
 }
 ```
 
-这样后续就可以通过 `npm run commit` 来代替 `git commit`，运行后就会以交互性方式完成 commit message 的编写。
+这样后续就可以通过 `npm run cm` 来代替 `git commit`，运行后就能以交互性的方式完成 commit message 的编写。
 
 ## @commitlint/cli, @commitlint/config-conventional
 
-commitizen 为填写规范化的 commit message 提供了便利性。但是没有对信息规范化做校验和拦截。即直接通过 git commit 命令提交代码，然后填写不规范的 message，也是可以提交成功。
+commitizen 为填写规范化的 commit message 提供了便利性。但是没有对信息规范化做校验。即填写不规范的 message, 直接通过 git commit 命令提交代码，也是可以提交成功。
 
-这两个工具就是用于解决上面的问题，通过加入到 husky 'commit-msg'，可以在提交前做进一步校验，确保不会提交不规范的 message。
+这两个工具就是用于解决上面的问题，通过添加 husky 'commit-msg' hook，可以在提交前做校验，确保不会提交不规范的 message。
 
 ```sh
 npm i -D @commitlint/config-conventional @commitlint/cli
 ```
 
-首先安装下包，之后新增 commitlint.config.js 文件，在文件中添加如下内容：
+之后新增 commitlint.config.js 文件，在文件中添加如下内容：
 
 ```js
 module.exports = {
@@ -165,7 +204,7 @@ module.exports = {
 };
 ```
 
-之后修改下 husky 配置信息，定义 'commit-message' hook：
+之后需要给 husky 定义 `commit-msg` hook。 husky 6.0 以下版本，配置信息如下：
 
 ```json
 {
@@ -178,17 +217,23 @@ module.exports = {
 }
 ```
 
-之后提交代码时，commit-message 只有遵循要求的格式才能提交成功 (这边用的是 cz-conventional-changelog 这个 adapter)。
+husky 6.0 以下，运行以下命令：
+
+```sh
+npx husky add .husky/commit-msg 'npx --no-install commitlint --edit "$1"'
+```
+
+至此 commit-message 只有遵循要求的格式才能提交成功 (`当然如果直接使用 --no-verify 参数，也是可以绕过去`)。
 
 ## conventional-changelog-cli
 
-这个工具可以根据 commit message 自动生成 changelog。commit message 可以是不同规范。
+这个工具可以根据 commit message 生成 CHANGELOG.md. commit message 可以是不同 adapter 的格式。
 
 ```sh
 npm i -D conventional-changelog-cli
 ```
 
-首先安装 conventional-changelog-cli，之后添加 npm script
+之后添加 npm script
 
 ```json
 {
@@ -197,15 +242,20 @@ npm i -D conventional-changelog-cli
   }
 }
 ```
--p 参数指定要使用的 commit message 标准；-s 表示读写 changelog 为同一文件。这条命令产生的 changelog 是基于上次 tag 版本之后的变更（Feature、Fix、Breaking Changes等等）所产生的，如果想生成之前所有 commit 信息产生的 changelog 则需要使用这条命令：
++ -p 参数指定要使用的 commit message 标准；
++ -s 表示读写 CHANGELOG.md 为同一文件。
+
+这条命令生成的 CHANGELOG.md 是基于上次 tag 版本之后的变更内容（Feature、Fix、Breaking Changes等等），如果想生成之前所有 commit 信息产生的 CHANGELOG.md 则需要使用这条命令：
 
 ```sh
-conventional-changelog -p angular -i CHANGELOG.md -s -r 0
+npx conventional-changelog -p angular -i CHANGELOG.md -s -r 0
 ```
 
--r 表示生成 changelog 所需要使用的 release 版本数量，默认值为 1，全部则是 0。如果是已有项目引入 conventional-changelog，需要先生成之前的信息；之后功能开发完后，修改 version 后，就可以通过 npm run changelog 自动生成该版本相关的 change log。
+-r 表示生成 CHANGELOG.md 所需要使用的 release 版本数量，默认值为 1，如果要生成全部则使用值 0。
 
-官方推荐的 workflow：
+对于已有项目引入 conventional-changelog, 通常需要先生成之前的信息；后续每个 tag 版本，修改 version 后，就可以通过 npm run changelog 生成该版本对应的 change log。
+
+conventional-changelog-cli 官方推荐的 workflow 如下：
 
 + Make changes
 + Commit those changes
@@ -216,11 +266,11 @@ conventional-changelog -p angular -i CHANGELOG.md -s -r 0
 + Tag
 + Push
 
-__注意__ 这边要求先提交 CHANGELOG.md，之后再打 tag，这样才能确保 CHANGELOG 和 版本是对应 (因为 conventionalChangelog 是生成从最新 tag 以来的信息，如果先打 tag，会导致没有对应的 chagnelog 内容。不过这样就得确保一旦 tag 删除后重新建，需要再重新生成 changelog)
+__注意__ 这边要求先提交 CHANGELOG.md, 之后再打 tag；这样才能确保 CHANGELOG 和 版本是对应 (因为 conventionalChangelog 是生成从最新 tag 以来的信息，如果先打 tag，会导致没有对应的 chagnelog 内容。不过这样就得确保一旦 tag 删除后重新建，需要再重新生成 CHANGELOG.md)
 
 ## standard-version
 
-这个工具也可以用于生成 changelog，而且还集成了一些其他功能。通常情况线下，我们会在 master 分支进行如下的版本发布操作：
+这个工具也可以用于生成 CHANGELOG.md，而且还集成了一些其他功能。通常情况线下，我们会在 master 分支进行如下的版本发布操作：
 
 1. git pull origin master
 2. 根据 pacakage.json 中的 version 更新版本号，更新 changelog
