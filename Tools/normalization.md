@@ -285,3 +285,15 @@ __注意__ 这边要求先提交 CHANGELOG.md, 之后再打 tag；这样才能�
 standard-version 把一些操作都集成起来了，对于新项目建议使用这个工具 (当然需要自定义一些参数，比如 tag 前缀等)。如果是已有项目，还是建议使用 conventional-changelog
 
 
+## 总结
+
+这几个工具的安装顺序和配置：
+
+1. 新增 .editorconfig 文件，添加配置信息
+2. 安装 eslint, 新增 `.eslintrc.js`, 添加 `extends`、`plugins`、`rules` 等配置信息, extends 和 plugins 需要安装对应的包
+3. 安装 prettier, 新增 `.prettierrc.js`, 添加配置信息
+4. 安装 eslint-config-prettier 和 eslint-plugin-prettier, eslint extends 中添加 `'plugin:prettier/recommended'` 配置
+5. 运行 `npx mrm@2 lint-staged` 安装 husky 和 lint-staged, 这个默认会添加 `pre-commit` hook
+6. 运行 `npx commitizen init cz-conventional-changelog -D -E` 安装 commitizen 和 cz-conventional-changelog。同时添加 `"cm": "git-cz"` 的 scripts。到这步就能通过 `npm run cm` 实现交互式填写 commit message
+7. 安装 @commitlint/cli 和 @commitlint/config-conventional, 新增 `commitlint.config.js` 文件; 之后通过 `npx husky add .husky/commit-msg 'npx --no-install commitlint --edit "$1"'` 添加 commit-msg hooks；到这步就实现 commit message 校验功能
+8. 安装 conventional-changelog-cli, 添加 changelog scripts。如果是已有项目，就先生成一份 CHANGELOG.md，后续每个版本，先更改 version, 然后再运行 `npm run changelog`，将最新的 CHANGELOG.md 和 package.json 提交到 git
