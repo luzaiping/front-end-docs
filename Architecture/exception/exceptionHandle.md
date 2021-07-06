@@ -90,6 +90,8 @@ window.addEventListener('unhandledrejection', e => {
 
 这边强烈建议加上 e.preventDefault()，这样 console 里才不会打印多余的异常信息。
 
+![几种错误处理方式的比较](diff.png)
+
 ### React 异常处理
 
 React 16提供了一个 componentDidCatch 组件方法，使用它可以非常简单地获取到 react 组件里的错误信息。包含 componentDidCatch 或 getDerivedStateFromError 的组件就是 ErrorBoundary。由于 componentDidCatch 是属于 React.Component 的实例方法，因此只有类组件才可以是 ErrorBoundary。
@@ -113,6 +115,8 @@ Vue.config.errorHandler = (err, vm, info) => {
   console.error(info);
 }
 ```
+
+通过 Vuejs 提供的 errorHandler，一旦 Vue 发生异常，都会调用这个方法。
 
 ### iframe 异常
 
@@ -191,6 +195,8 @@ Reporter.send = function(data) {
 }
 ```
 采集率应该根据实际情况来设定，随机数或者某些用户特征都是不错的选择。
+
+## sourcemap
 
 ## 总结
 如何优雅地处理前端异常：
